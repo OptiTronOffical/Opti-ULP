@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0b0f14" />
-<title>URL Extractor · v2.0</title>
+<title>Opti ULP Extractor · v2.0</title>
 <style>
 /* =====================================================================
    TOKENS
@@ -48,7 +48,7 @@ body{
   font-size:15px;
   line-height:1.45;
   -webkit-font-smoothing:antialiased;
-  overflow:hidden;               /* locked during splash */
+  overflow:hidden;
   padding-bottom:env(safe-area-inset-bottom);
 }
 body.app-mode{overflow:auto}
@@ -71,55 +71,30 @@ body.app-mode{overflow:auto}
     var(--bg);
   transition:opacity .4s ease, transform .4s ease;
 }
-.splash.gone{
-  opacity:0;
-  pointer-events:none;
-  transform:scale(1.02);
-}
+.splash.gone{opacity:0;pointer-events:none;transform:scale(1.02)}
 .splash-inner{
-  width:100%;
-  max-width:460px;
-  margin:auto;
-  display:flex;
-  flex-direction:column;
-  gap:26px;
+  width:100%;max-width:460px;margin:auto;
+  display:flex;flex-direction:column;gap:26px;
 }
-
-/* ---- Brand block ---- */
 .splash-brand{
   text-align:center;
-  opacity:0;
-  transform:translateY(14px);
+  opacity:0;transform:translateY(14px);
   animation:splashIn .65s cubic-bezier(.2,.8,.2,1) .05s forwards;
 }
 .splash-logo{
-  position:relative;
-  width:78px;
-  height:78px;
-  margin:0 auto 18px;
-  border-radius:22px;
-  display:grid;
-  place-items:center;
-  font-size:34px;
+  position:relative;width:78px;height:78px;margin:0 auto 18px;
+  border-radius:22px;display:grid;place-items:center;font-size:34px;
   background:linear-gradient(135deg, #00e5a0, #00a874);
   color:#04140d;
-  box-shadow:
-    0 10px 30px rgba(0,229,160,.35),
-    inset 0 1px 0 rgba(255,255,255,.3);
+  box-shadow:0 10px 30px rgba(0,229,160,.35), inset 0 1px 0 rgba(255,255,255,.3);
 }
 .splash-logo-ring{
-  position:absolute;
-  inset:-8px;
-  border-radius:28px;
+  position:absolute;inset:-8px;border-radius:28px;
   border:1.5px solid rgba(0,229,160,.35);
-  animation:ringPulse 2.4s ease-out infinite;
-  pointer-events:none;
+  animation:ringPulse 2.4s ease-out infinite;pointer-events:none;
 }
 .splash-logo-ring::after{
-  content:"";
-  position:absolute;
-  inset:-12px;
-  border-radius:34px;
+  content:"";position:absolute;inset:-12px;border-radius:34px;
   border:1px solid rgba(0,229,160,.18);
   animation:ringPulse 2.4s ease-out .4s infinite;
 }
@@ -128,216 +103,117 @@ body.app-mode{overflow:auto}
   100%{transform:scale(1.15);opacity:0}
 }
 .splash-brand h1{
-  margin:0;
-  font-size:26px;
-  font-weight:700;
-  letter-spacing:-.5px;
-  color:var(--text);
+  margin:0;font-size:26px;font-weight:700;
+  letter-spacing:-.5px;color:var(--text);
 }
 .splash-brand p{
-  margin:7px 0 0;
-  font-size:13.5px;
-  color:var(--muted);
-  letter-spacing:.1px;
+  margin:7px 0 0;font-size:13.5px;
+  color:var(--muted);letter-spacing:.1px;
 }
 
-/* ---- Dropzone ---- */
 .dropzone{
   position:relative;
   border:2px dashed var(--border-hi);
   border-radius:24px;
   padding:44px 22px 38px;
-  text-align:center;
-  cursor:pointer;
-  user-select:none;
+  text-align:center;cursor:pointer;user-select:none;
   background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
-  transition:
-    border-color .25s,
-    background .25s,
-    transform .25s cubic-bezier(.2,.8,.2,1),
-    box-shadow .25s;
-  overflow:hidden;
-  opacity:0;
-  transform:translateY(14px);
+  transition:border-color .25s,background .25s,transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s;
+  overflow:hidden;outline:none;
+  opacity:0;transform:translateY(14px);
   animation:splashIn .65s cubic-bezier(.2,.8,.2,1) .15s forwards;
-  outline:none;
 }
 .dropzone::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:22px;
+  content:"";position:absolute;inset:0;border-radius:22px;
   background:radial-gradient(400px 200px at 50% 0%, rgba(0,229,160,.10), rgba(0,0,0,0) 70%);
-  opacity:0;
-  transition:opacity .25s;
-  pointer-events:none;
+  opacity:0;transition:opacity .25s;pointer-events:none;
 }
-.dropzone:hover,
-.dropzone:focus-visible{
+.dropzone:hover,.dropzone:focus-visible{
   border-color:var(--accent-dim);
   background:linear-gradient(180deg, rgba(0,229,160,.045), rgba(0,229,160,.01));
 }
-.dropzone:hover::before,
-.dropzone:focus-visible::before{opacity:1}
+.dropzone:hover::before,.dropzone:focus-visible::before{opacity:1}
 .dropzone:active{transform:scale(.99)}
-
 .dropzone.dragover{
-  border-color:var(--accent);
-  border-style:solid;
+  border-color:var(--accent);border-style:solid;
   background:linear-gradient(180deg, rgba(0,229,160,.12), rgba(0,229,160,.03));
-  box-shadow:
-    0 0 0 4px rgba(0,229,160,.12),
-    0 14px 44px rgba(0,229,160,.28);
+  box-shadow:0 0 0 4px rgba(0,229,160,.12), 0 14px 44px rgba(0,229,160,.28);
   transform:scale(1.015);
 }
 .dropzone.dragover::before{opacity:1}
-
 .dropzone-icon{
-  width:72px;
-  height:72px;
-  margin:0 auto 20px;
-  border-radius:22px;
+  width:72px;height:72px;margin:0 auto 20px;border-radius:22px;
   background:linear-gradient(135deg, rgba(0,229,160,.16), rgba(0,229,160,.04));
   border:1px solid rgba(0,229,160,.25);
-  display:grid;
-  place-items:center;
-  font-size:31px;
+  display:grid;place-items:center;font-size:31px;
   box-shadow:0 8px 26px rgba(0,229,160,.14);
   animation:float 3.2s ease-in-out infinite;
 }
-@keyframes float{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-7px)}
-}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 .dropzone.dragover .dropzone-icon{
-  animation:none;
-  transform:scale(1.08) translateY(-4px);
+  animation:none;transform:scale(1.08) translateY(-4px);
   background:linear-gradient(135deg, rgba(0,229,160,.28), rgba(0,229,160,.10));
   box-shadow:0 12px 34px rgba(0,229,160,.35);
-  transition:transform .25s, background .25s, box-shadow .25s;
+  transition:transform .25s,background .25s,box-shadow .25s;
 }
-.dropzone-title{
-  font-size:17px;
-  font-weight:650;
-  color:var(--text);
-  letter-spacing:-.2px;
-  margin-bottom:6px;
-}
-.dropzone-sub{
-  font-size:13px;
-  color:var(--muted);
-}
-.dropzone-tags{
-  display:flex;
-  justify-content:center;
-  gap:7px;
-  margin-top:20px;
-  flex-wrap:wrap;
-}
+.dropzone-title{font-size:17px;font-weight:650;color:var(--text);letter-spacing:-.2px;margin-bottom:6px}
+.dropzone-sub{font-size:13px;color:var(--muted)}
+.dropzone-tags{display:flex;justify-content:center;gap:7px;margin-top:20px;flex-wrap:wrap}
 .mini-tag{
-  font-size:10.5px;
-  font-weight:600;
-  padding:4px 10px;
-  border-radius:999px;
-  background:rgba(255,255,255,.04);
-  border:1px solid var(--border);
-  color:var(--muted);
-  letter-spacing:.3px;
+  font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  color:var(--muted);letter-spacing:.3px;
 }
 .dropzone.dragover .mini-tag{
-  border-color:rgba(0,229,160,.3);
-  color:var(--accent);
-  background:rgba(0,229,160,.08);
+  border-color:rgba(0,229,160,.3);color:var(--accent);background:rgba(0,229,160,.08);
   transition:.25s;
 }
-
 .splash-foot{
-  text-align:center;
-  font-size:11.5px;
-  color:var(--muted-2);
+  text-align:center;font-size:11.5px;color:var(--muted-2);
   letter-spacing:.2px;
-  opacity:0;
-  transform:translateY(14px);
+  opacity:0;transform:translateY(14px);
   animation:splashIn .65s cubic-bezier(.2,.8,.2,1) .25s forwards;
 }
-@keyframes splashIn{
-  to{opacity:1;transform:translateY(0)}
-}
+@keyframes splashIn{to{opacity:1;transform:translateY(0)}}
 
 /* =====================================================================
    APP SHELL
    ===================================================================== */
 .app{
-  max-width:640px;
-  margin:0 auto;
-  padding:0 16px 40px;
-  opacity:0;
-  transform:translateY(12px);
-  transition:
-    opacity .5s ease .05s,
-    transform .5s cubic-bezier(.2,.8,.2,1) .05s;
+  max-width:640px;margin:0 auto;padding:0 16px 40px;
+  opacity:0;transform:translateY(12px);
+  transition:opacity .5s ease .05s,transform .5s cubic-bezier(.2,.8,.2,1) .05s;
 }
-body.app-mode .app{
-  opacity:1;
-  transform:translateY(0);
-}
+body.app-mode .app{opacity:1;transform:translateY(0)}
 
-/* ---------- Sticky app bar ---------- */
 .app-bar{
-  position:sticky;
-  top:0;
-  z-index:50;
+  position:sticky;top:0;z-index:50;
   margin:0 -16px 14px;
   padding:calc(env(safe-area-inset-top) + 14px) 16px 12px;
   background:rgba(11,15,20,.82);
   backdrop-filter:saturate(180%) blur(18px);
   -webkit-backdrop-filter:saturate(180%) blur(18px);
   border-bottom:1px solid rgba(255,255,255,.04);
-  display:flex;
-  align-items:center;
-  gap:12px;
+  display:flex;align-items:center;gap:12px;
 }
-.brand{
-  display:flex;align-items:center;gap:11px;flex:1;min-width:0;
-}
+.brand{display:flex;align-items:center;gap:11px;flex:1;min-width:0}
 .logo{
-  width:38px;height:38px;flex-shrink:0;
-  border-radius:11px;
-  display:grid;place-items:center;
-  font-size:19px;
+  width:38px;height:38px;flex-shrink:0;border-radius:11px;
+  display:grid;place-items:center;font-size:19px;
   background:linear-gradient(135deg, #00e5a0, #00a874);
   color:#04140d;
   box-shadow:0 4px 16px rgba(0,229,160,.35), inset 0 1px 0 rgba(255,255,255,.25);
 }
-.brand h1{
-  margin:0;
-  font-size:16px;
-  font-weight:650;
-  letter-spacing:-.2px;
-  color:var(--text);
-}
-.brand p{
-  margin:1px 0 0;
-  font-size:11px;
-  color:var(--muted);
-  letter-spacing:.3px;
-}
+.brand h1{margin:0;font-size:16px;font-weight:650;letter-spacing:-.2px;color:var(--text)}
+.brand p{margin:1px 0 0;font-size:11px;color:var(--muted);letter-spacing:.3px}
 .status-pill{
-  font-size:11px;
-  font-weight:600;
-  padding:5px 10px;
-  border-radius:999px;
-  background:var(--card-2);
-  border:1px solid var(--border);
-  color:var(--muted);
-  white-space:nowrap;
-  transition:.2s;
+  font-size:11px;font-weight:600;padding:5px 10px;border-radius:999px;
+  background:var(--card-2);border:1px solid var(--border);
+  color:var(--muted);white-space:nowrap;transition:.2s;
 }
 .status-pill.live{
-  color:var(--accent);
-  border-color:var(--accent-dim);
-  background:var(--accent-soft);
-  box-shadow:0 0 12px var(--accent-glow);
+  color:var(--accent);border-color:var(--accent-dim);
+  background:var(--accent-soft);box-shadow:0 0 12px var(--accent-glow);
 }
 .status-pill.live::before{
   content:"";display:inline-block;width:6px;height:6px;border-radius:50%;
@@ -346,108 +222,56 @@ body.app-mode .app{
 }
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
-/* =====================================================================
-   FILES BANNER
-   ===================================================================== */
 .files-banner{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:12px 14px;
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:16px;
-  margin-bottom:12px;
-  box-shadow:var(--shadow-sm);
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;background:var(--card);
+  border:1px solid var(--border);border-radius:16px;
+  margin-bottom:12px;box-shadow:var(--shadow-sm);
 }
 .files-banner-icon{
-  width:38px;height:38px;flex-shrink:0;
-  border-radius:11px;
-  background:var(--accent-soft);
-  border:1px solid rgba(0,229,160,.22);
-  display:grid;place-items:center;
-  font-size:17px;
+  width:38px;height:38px;flex-shrink:0;border-radius:11px;
+  background:var(--accent-soft);border:1px solid rgba(0,229,160,.22);
+  display:grid;place-items:center;font-size:17px;
 }
 .files-banner-info{flex:1;min-width:0}
 .files-banner-title{
-  font-size:13px;
-  font-weight:650;
-  color:var(--text);
+  font-size:13px;font-weight:650;color:var(--text);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .files-banner-sub{
-  font-size:11.5px;
-  color:var(--muted);
-  margin-top:2px;
+  font-size:11.5px;color:var(--muted);margin-top:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
-/* =====================================================================
-   CARDS
-   ===================================================================== */
 .card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:16px;
-  margin-bottom:12px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;margin-bottom:12px;
   box-shadow:var(--shadow-sm);
 }
-.card-head{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:12px;
-}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .card-head .icon{
-  width:30px;height:30px;flex-shrink:0;
-  border-radius:9px;
-  display:grid;place-items:center;
-  font-size:15px;
-  background:var(--card-3);
-  border:1px solid var(--border);
+  width:30px;height:30px;flex-shrink:0;border-radius:9px;
+  display:grid;place-items:center;font-size:15px;
+  background:var(--card-3);border:1px solid var(--border);
 }
 .card-head h2{
-  margin:0;
-  font-size:13px;
-  font-weight:650;
-  letter-spacing:.3px;
-  color:var(--text);
-  flex:1;
-  text-transform:uppercase;
+  margin:0;font-size:13px;font-weight:650;letter-spacing:.3px;
+  color:var(--text);flex:1;text-transform:uppercase;
 }
 .card-head .sub{
-  font-size:11px;
-  color:var(--muted);
-  font-weight:500;
-  letter-spacing:0;
-  text-transform:none;
+  font-size:11px;color:var(--muted);font-weight:500;
+  letter-spacing:0;text-transform:none;
 }
 
-/* =====================================================================
-   BUTTONS
-   ===================================================================== */
 .btn{
-  appearance:none;
-  font:inherit;
-  font-size:13.5px;
-  font-weight:550;
-  color:var(--text);
-  background:var(--card-2);
-  border:1px solid var(--border);
-  border-radius:var(--radius-sm);
-  padding:11px 14px;
-  cursor:pointer;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  transition:transform .08s, background .15s, border-color .15s, box-shadow .15s;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  min-width:0;
-  user-select:none;
+  appearance:none;font:inherit;font-size:13.5px;font-weight:550;
+  color:var(--text);background:var(--card-2);
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:11px 14px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform .08s,background .15s,border-color .15s,box-shadow .15s;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  min-width:0;user-select:none;
 }
 .btn:hover:not(:disabled){background:var(--card-3);border-color:var(--border-hi)}
 .btn:active:not(:disabled){transform:scale(.97)}
@@ -455,75 +279,52 @@ body.app-mode .app{
 .btn .ico{font-size:15px;line-height:1;flex-shrink:0}
 .btn.primary{
   background:linear-gradient(180deg, #00e5a0, #00b87f);
-  color:#04140d;
-  border-color:transparent;
+  color:#04140d;border-color:transparent;
   box-shadow:0 6px 20px rgba(0,229,160,.28), inset 0 1px 0 rgba(255,255,255,.3);
-  font-weight:700;
-  letter-spacing:.2px;
+  font-weight:700;letter-spacing:.2px;
 }
 .btn.primary:hover:not(:disabled){box-shadow:0 8px 26px rgba(0,229,160,.45)}
 .btn.ghost{background:transparent;border-color:var(--border)}
 .btn.ghost:hover:not(:disabled){background:var(--card-2)}
 .btn.soft{
-  background:var(--accent-soft);
-  border-color:rgba(0,229,160,.28);
+  background:var(--accent-soft);border-color:rgba(0,229,160,.28);
   color:var(--accent);
 }
 .btn.small{padding:7px 11px;font-size:12px;border-radius:9px}
 
-/* =====================================================================
-   KEYWORD CHIPS
-   ===================================================================== */
+/* ---------- keyword chips ---------- */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  padding:9px 13px 9px 11px;
-  border-radius:999px;
-  background:var(--card-2);
-  border:1px solid var(--border);
-  color:var(--text);
-  font-size:13px;
-  font-weight:550;
-  cursor:pointer;
-  user-select:none;
-  transition:.15s;
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 13px 9px 11px;border-radius:999px;
+  background:var(--card-2);border:1px solid var(--border);
+  color:var(--text);font-size:13px;font-weight:550;
+  cursor:pointer;user-select:none;transition:.15s;
 }
 .chip:hover{background:var(--card-3);border-color:var(--border-hi)}
 .chip .emoji{font-size:14px;line-height:1}
 .chip .count{
-  font-size:10.5px;font-weight:600;
-  color:var(--muted);
-  background:rgba(255,255,255,.04);
-  padding:1px 6px;
-  border-radius:999px;
-  border:1px solid var(--border);
+  font-size:10.5px;font-weight:600;color:var(--muted);
+  background:rgba(255,255,255,.04);padding:1px 6px;
+  border-radius:999px;border:1px solid var(--border);
   transition:.15s;
 }
 .chip.on{
-  background:var(--accent-soft);
-  border-color:var(--accent-dim);
+  background:var(--accent-soft);border-color:var(--accent-dim);
   color:var(--accent);
   box-shadow:0 0 0 1px rgba(0,229,160,.15), 0 4px 14px rgba(0,229,160,.10);
 }
 .chip.on .count{
-  color:var(--accent);
-  border-color:rgba(0,229,160,.3);
+  color:var(--accent);border-color:rgba(0,229,160,.3);
   background:rgba(0,229,160,.10);
 }
 .chip.on::after{content:"✓";font-size:11px;font-weight:800;margin-left:1px}
 
-/* =====================================================================
-   TEXTAREA
-   ===================================================================== */
+/* ---------- textarea ---------- */
 .field{display:flex;flex-direction:column;gap:6px}
 .ta-wrap{
-  position:relative;
-  border-radius:var(--radius-sm);
-  overflow:hidden;
-  border:1px solid var(--border);
-  background:var(--card-2);
+  position:relative;border-radius:var(--radius-sm);overflow:hidden;
+  border:1px solid var(--border);background:var(--card-2);
   transition:.15s;
 }
 .ta-wrap:focus-within{
@@ -531,57 +332,35 @@ body.app-mode .app{
   box-shadow:0 0 0 3px rgba(0,229,160,.10);
 }
 textarea{
-  width:100%;
-  min-height:110px;
-  max-height:280px;
-  resize:vertical;
-  padding:12px 14px;
-  font:13px/1.55 var(--mono);
-  color:var(--text);
-  background:transparent;
-  border:0;
-  outline:0;
-  letter-spacing:-.1px;
-  tab-size:2;
+  width:100%;min-height:110px;max-height:280px;resize:vertical;
+  padding:12px 14px;font:13px/1.55 var(--mono);
+  color:var(--text);background:transparent;border:0;outline:0;
+  letter-spacing:-.1px;tab-size:2;
 }
 textarea::placeholder{color:var(--muted-2)}
 .ta-foot{display:flex;align-items:center;gap:8px;padding:0 2px}
 .ta-foot .hint{
-  flex:1;
-  font-size:11.5px;
-  color:var(--muted);
+  flex:1;font-size:11.5px;color:var(--muted);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .ta-foot .hint b{color:var(--accent);font-weight:600}
 
-/* =====================================================================
-   RUN BUTTON
-   ===================================================================== */
+/* ---------- run button ---------- */
 .cta{margin:14px 0 12px}
 .cta .btn{
-  width:100%;
-  padding:16px;
-  font-size:15px;
-  border-radius:var(--radius);
-  letter-spacing:.4px;
+  width:100%;padding:16px;font-size:15px;
+  border-radius:var(--radius);letter-spacing:.4px;
 }
 .cta .btn .ico{font-size:17px}
 
-/* =====================================================================
-   CONSOLE
-   ===================================================================== */
+/* ---------- console ---------- */
 .console{
-  background:#05090c;
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  overflow:hidden;
-  margin-bottom:12px;
-  box-shadow:var(--shadow);
+  background:#05090c;border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+  margin-bottom:12px;box-shadow:var(--shadow);
 }
 .console-bar{
-  display:flex;
-  align-items:center;
-  gap:8px;
+  display:flex;align-items:center;gap:8px;
   padding:10px 14px;
   background:linear-gradient(180deg,#0d141a,#080d11);
   border-bottom:1px solid var(--border);
@@ -592,30 +371,20 @@ textarea::placeholder{color:var(--muted-2)}
 .dot.y{background:#3a2f10;border:1px solid #6e5a22}
 .dot.g{background:#0f2f1f;border:1px solid #1d6640}
 .console-bar .title{
-  flex:1;
-  font:11.5px var(--mono);
-  color:var(--muted);
-  letter-spacing:.4px;
-  text-align:center;
+  flex:1;font:11.5px var(--mono);color:var(--muted);
+  letter-spacing:.4px;text-align:center;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .console-bar .btn{
-  padding:4px 9px;
-  font-size:11px;
-  border-radius:7px;
-  background:transparent;
-  border-color:transparent;
-  color:var(--muted);
+  padding:4px 9px;font-size:11px;border-radius:7px;
+  background:transparent;border-color:transparent;color:var(--muted);
 }
 .console-bar .btn:hover{color:var(--text);background:rgba(255,255,255,.05)}
 
 #terminal{
-  height:min(46vh,380px);
-  overflow-y:auto;
-  padding:12px 14px;
+  height:min(46vh,380px);overflow-y:auto;padding:12px 14px;
   font:12px/1.55 var(--mono);
-  scrollbar-width:thin;
-  scrollbar-color:var(--border-hi) transparent;
+  scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;
 }
 #terminal::-webkit-scrollbar{width:8px}
 #terminal::-webkit-scrollbar-track{background:transparent}
@@ -635,35 +404,22 @@ textarea::placeholder{color:var(--muted-2)}
 .line .muted{color:var(--muted-2)}
 
 #statusbar{
-  padding:9px 14px;
-  border-top:1px solid var(--border);
-  background:#080d11;
-  font:11.5px var(--mono);
-  color:var(--accent);
-  min-height:32px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  padding:9px 14px;border-top:1px solid var(--border);
+  background:#080d11;font:11.5px var(--mono);color:var(--accent);
+  min-height:32px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
-/* =====================================================================
-   RESULTS
-   ===================================================================== */
+/* ---------- results ---------- */
 .results-empty{
-  font-size:12.5px;
-  color:var(--muted-2);
-  text-align:center;
-  padding:14px 0 6px;
+  font-size:12.5px;color:var(--muted-2);
+  text-align:center;padding:14px 0 6px;
 }
 .result-banner{
-  display:flex;
-  align-items:center;
-  gap:9px;
-  padding:11px 13px;
-  border-radius:var(--radius-sm);
+  display:flex;align-items:center;gap:9px;
+  padding:11px 13px;border-radius:var(--radius-sm);
   background:var(--accent-soft);
   border:1px solid rgba(0,229,160,.22);
-  color:var(--accent);
-  font-size:12.5px;
-  font-weight:600;
+  color:var(--accent);font-size:12.5px;font-weight:600;
   margin-bottom:12px;
 }
 .result-banner .ico{font-size:15px}
@@ -671,69 +427,41 @@ textarea::placeholder{color:var(--muted-2)}
 .file-grid{display:grid;grid-template-columns:1fr;gap:7px;margin-top:4px}
 .file-item{
   display:flex;align-items:center;gap:10px;
-  padding:10px 12px;
-  border-radius:var(--radius-xs);
-  background:var(--card-2);
-  border:1px solid var(--border);
-  font-size:12.5px;
-  overflow:hidden;
-  transition:.12s;
-  text-decoration:none;
-  color:var(--text);
+  padding:10px 12px;border-radius:var(--radius-xs);
+  background:var(--card-2);border:1px solid var(--border);
+  font-size:12.5px;overflow:hidden;transition:.12s;
+  text-decoration:none;color:var(--text);
 }
 .file-item:hover{background:var(--card-3);border-color:var(--border-hi)}
 .file-item .badge{
-  flex-shrink:0;
-  font:10.5px var(--mono);
-  font-weight:700;
-  color:var(--accent);
-  background:rgba(0,229,160,.10);
+  flex-shrink:0;font:10.5px var(--mono);font-weight:700;
+  color:var(--accent);background:rgba(0,229,160,.10);
   border:1px solid rgba(0,229,160,.22);
-  padding:2px 7px;
-  border-radius:999px;
-  min-width:34px;
-  text-align:center;
+  padding:2px 7px;border-radius:999px;
+  min-width:34px;text-align:center;
 }
 .file-item .name{
-  flex:1;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-family:var(--mono);
-  font-size:11.5px;
-  color:var(--muted);
+  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:var(--mono);font-size:11.5px;color:var(--muted);
 }
 .file-item:hover .name{color:var(--text)}
 .file-item .dl{flex-shrink:0;font-size:11px;color:var(--accent);opacity:.85}
 
-/* =====================================================================
-   TOAST
-   ===================================================================== */
+/* ---------- toast ---------- */
 .toast{
-  position:fixed;
-  left:50%;
-  bottom:calc(env(safe-area-inset-bottom) + 20px);
+  position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 20px);
   transform:translate(-50%,30px);
-  background:var(--card-3);
-  color:var(--text);
-  border:1px solid var(--border-hi);
-  border-radius:999px;
-  padding:10px 18px;
-  font-size:13px;
-  font-weight:550;
-  box-shadow:var(--shadow);
-  opacity:0;
-  pointer-events:none;
-  transition:.25s;
-  z-index:200;
-  max-width:90vw;
+  background:var(--card-3);color:var(--text);
+  border:1px solid var(--border-hi);border-radius:999px;
+  padding:10px 18px;font-size:13px;font-weight:550;
+  box-shadow:var(--shadow);opacity:0;pointer-events:none;
+  transition:.25s;z-index:200;max-width:90vw;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.ok{border-color:var(--accent-dim);color:var(--accent)}
 .toast.err{border-color:#5a2024;color:var(--err)}
 
-/* =====================================================================
-   MISC
-   ===================================================================== */
 .hidden{display:none !important}
 
 @media (min-width:520px){
@@ -748,13 +476,12 @@ textarea::placeholder{color:var(--muted-2)}
      ===================================================================== -->
 <div class="splash" id="splash">
   <div class="splash-inner">
-
     <div class="splash-brand">
       <div class="splash-logo">
         <span class="splash-logo-ring"></span>
         ⚡
       </div>
-      <h1>URL Extractor</h1>
+      <h1>Opti ULP Extractor</h1>
       <p>Real-time line matching across .txt files</p>
     </div>
 
@@ -772,7 +499,6 @@ textarea::placeholder{color:var(--muted-2)}
     <input type="file" id="splashInput" accept=".txt,text/plain" multiple hidden />
 
     <div class="splash-foot">🔒 Files never leave your device</div>
-
   </div>
 </div>
 
@@ -781,19 +507,17 @@ textarea::placeholder{color:var(--muted-2)}
      ===================================================================== -->
 <div class="app" id="app">
 
-  <!-- ============== APP BAR ============== -->
   <header class="app-bar">
     <div class="brand">
       <div class="logo">⚡</div>
       <div>
-        <h1>URL Extractor</h1>
+        <h1>Opti ULP Extractor</h1>
         <p>Real-time line matching · v2.0</p>
       </div>
     </div>
     <div class="status-pill" id="statusPill">idle</div>
   </header>
 
-  <!-- ============== FILES BANNER ============== -->
   <div class="files-banner" id="filesBanner">
     <div class="files-banner-icon">📁</div>
     <div class="files-banner-info">
@@ -803,17 +527,15 @@ textarea::placeholder{color:var(--muted-2)}
     <button class="btn small ghost" type="button" id="changeFilesBtn">Change</button>
   </div>
 
-  <!-- ============== QUICK KEYWORDS ============== -->
   <section class="card">
     <div class="card-head">
       <div class="icon">⚡</div>
-      <h2>Quick Keywords</h2>
+      <h2>Quick Categories</h2>
       <span class="sub" id="catCount">0 selected</span>
     </div>
     <div class="chips" id="chips"></div>
   </section>
 
-  <!-- ============== CUSTOM KEYWORDS ============== -->
   <section class="card">
     <div class="card-head">
       <div class="icon">✏️</div>
@@ -825,7 +547,7 @@ textarea::placeholder{color:var(--muted-2)}
     <div class="field">
       <div class="ta-wrap">
         <textarea id="customKw" spellcheck="false" autocapitalize="off" autocomplete="off"
-          placeholder="One keyword per line, e.g.&#10;/admin/login&#10;/api/v2/users&#10;config.php"></textarea>
+          placeholder="One keyword per line — longer terms work best, e.g.&#10;admin control panel&#10;card balance&#10;private key&#10;api key&#10;login credentials"></textarea>
       </div>
       <div class="ta-foot">
         <span class="hint" id="kwHint">Enter keywords above, or toggle a category</span>
@@ -834,7 +556,6 @@ textarea::placeholder{color:var(--muted-2)}
     <input type="file" id="kwFile" accept=".txt,text/plain" hidden />
   </section>
 
-  <!-- ============== OUTPUT ============== -->
   <section class="card">
     <div class="card-head">
       <div class="icon">💾</div>
@@ -849,14 +570,12 @@ textarea::placeholder{color:var(--muted-2)}
     </div>
   </section>
 
-  <!-- ============== RUN ============== -->
   <div class="cta">
     <button class="btn primary" type="button" id="runBtn">
       <span class="ico">▶</span> RUN EXTRACTION
     </button>
   </div>
 
-  <!-- ============== CONSOLE ============== -->
   <section class="console">
     <div class="console-bar">
       <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
@@ -867,7 +586,6 @@ textarea::placeholder{color:var(--muted-2)}
     <div id="statusbar">idle · waiting for input…</div>
   </section>
 
-  <!-- ============== RESULTS ============== -->
   <section class="card" id="resultsCard">
     <div class="card-head">
       <div class="icon">📊</div>
@@ -886,28 +604,129 @@ textarea::placeholder{color:var(--muted-2)}
   "use strict";
 
   /* ===================================================================
-     PRESET KEYWORD CATEGORIES
+     EXPANDED KEYWORD CATEGORIES
+     Longer, more descriptive phrases for sensitive-data discovery
      =================================================================== */
   const CATEGORIES = [
-    { id:"admin", label:"Admin", icon:"🛡️", keywords:[
-      "admin/login","admin/dashboard","/admin/","admin.php",
-      "wp-admin","adminpanel","admin_area","administrator"] },
-    { id:"auth", label:"Auth", icon:"🔑", keywords:[
-      "/login","login.php","signin","sign-in","logout",
-      "auth","authenticate","password"] },
-    { id:"api", label:"API", icon:"🔌", keywords:[
-      "/api/","api/v1","api/v2","/graphql","swagger","openapi","/rest/"] },
-    { id:"config", label:"Config", icon:"⚙️", keywords:[
-      ".env","config.php","web.config",".git/config","settings.py",
-      "wp-config",".htaccess"] },
-    { id:"backup", label:"Backup", icon:"💾", keywords:[
-      ".sql",".bak","/backup","dump.sql","database.sql",".tar.gz",".zip"] },
-    { id:"upload", label:"Uploads", icon:"📁", keywords:[
-      "/uploads/","/files/","filemanager","/media/","/attachments/"] },
-    { id:"dev", label:"Dev / Test", icon:"🧪", keywords:[
-      "localhost","/test/","/dev/","/staging/","debug","/sandbox/"] },
-    { id:"docs", label:"Docs", icon:"📖", keywords:[
-      "/docs/","/documentation/","readme","changelog","/help/","/manual/"] }
+    {
+      id: "admin_panels", label: "Admin Panels", icon: "🛡️",
+      keywords: [
+        "admin panel", "admin dashboard", "admin control panel",
+        "admin login", "administrator panel", "administrator login",
+        "admin area", "admin console", "backend admin",
+        "site administration", "admin portal", "admin access",
+        "cpanel login", "whm login", "plesk panel", "webadmin panel"
+      ]
+    },
+    {
+      id: "login_panels", label: "Login Panels", icon: "🔑",
+      keywords: [
+        "login panel", "login page", "sign in page", "user login",
+        "client login", "member login", "staff login", "employee login",
+        "secure login", "account login", "portal login", "webmail login",
+        "login credentials", "authentication required",
+        "please sign in", "enter your password"
+      ]
+    },
+    {
+      id: "dashboards", label: "Dashboards", icon: "📊",
+      keywords: [
+        "dashboard", "user dashboard", "admin dashboard",
+        "analytics dashboard", "management console", "reporting dashboard",
+        "monitoring dashboard", "control panel", "stats panel",
+        "overview panel", "admin overview", "system status"
+      ]
+    },
+    {
+      id: "api_keys", label: "API Keys", icon: "🔌",
+      keywords: [
+        "api key", "api_key", "apikey", "api secret", "api token",
+        "client secret", "client id", "consumer key", "consumer secret",
+        "access token", "bearer token", "auth token", "refresh token",
+        "jwt token", "oauth token", "personal access token",
+        "secret key", "app secret", "private token"
+      ]
+    },
+    {
+      id: "crypto_keys", label: "Crypto Keys", icon: "₿",
+      keywords: [
+        "private key", "public key", "seed phrase", "mnemonic phrase",
+        "recovery phrase", "wallet address", "bitcoin wallet",
+        "ethereum wallet", "crypto wallet", "cold wallet", "hot wallet",
+        "wallet.dat", "keystore file", "metamask seed", "trust wallet",
+        "ledger seed", "hardware wallet", "begin rsa private key",
+        "begin openssh private key"
+      ]
+    },
+    {
+      id: "card_balances", label: "Card Balances", icon: "💳",
+      keywords: [
+        "card balance", "account balance", "available balance",
+        "current balance", "ledger balance", "credit card number",
+        "debit card number", "card holder name", "card number",
+        "expiry date", "cvv code", "billing address",
+        "iban number", "swift code", "routing number", "account number"
+      ]
+    },
+    {
+      id: "cloud_ssh", label: "Cloud & SSH", icon: "☁️",
+      keywords: [
+        "aws access key", "aws secret key", "aws access key id",
+        "s3 bucket", "aws account id", "azure key", "azure connection",
+        "gcp service account", "google api key", "ssh private key",
+        "ssh-rsa", "ssh-ed25519", "ssh-rsa aaa", "id_rsa", "id_ed25519",
+        "authorized_keys", "known_hosts", "cloud credentials", "iam user"
+      ]
+    },
+    {
+      id: "databases", label: "Databases", icon: "🗄️",
+      keywords: [
+        "database password", "db_password", "db_pass", "mysql password",
+        "postgres password", "mssql password", "mongodb uri",
+        "connection string", "jdbc:", "mongodb://", "postgresql://",
+        "mysql://", "redis://", "database backup", "sql dump", "phpmyadmin"
+      ]
+    },
+    {
+      id: "config_secrets", label: "Config & Secrets", icon: "⚙️",
+      keywords: [
+        "config file", "configuration file", "environment variables",
+        "environment file", ".env file", "secrets.yml", "secrets.yaml",
+        "credentials.json", "settings.py", "wp-config.php",
+        "web.config", "appsettings.json", "docker-compose.yml",
+        ".htpasswd", "id_rsa.pub", "private_key.pem"
+      ]
+    },
+    {
+      id: "payment", label: "Payment Gateways", icon: "💰",
+      keywords: [
+        "stripe secret key", "stripe api key", "stripe live key",
+        "paypal client id", "paypal client secret", "braintree key",
+        "square access token", "payment gateway", "merchant id",
+        "transaction id", "payment credentials", "checkout api",
+        "billing credentials", "payout account"
+      ]
+    },
+    {
+      id: "email_smtp", label: "Email & SMTP", icon: "📧",
+      keywords: [
+        "smtp password", "smtp username", "smtp host", "smtp port",
+        "mail password", "email password", "imap password",
+        "pop3 password", "sendgrid api", "mailgun api",
+        "email credentials", "email account", "mail credentials",
+        "outlook password", "gmail password"
+      ]
+    },
+    {
+      id: "dev_test", label: "Dev / Test", icon: "🧪",
+      keywords: [
+        "localhost", "127.0.0.1", "staging environment",
+        "development server", "test credentials", "debug mode",
+        "sandbox environment", "internal api", "dev server",
+        "preprod", "uat environment", "test account",
+        "default password", "default credentials"
+      ]
+    }
   ];
 
   /* ===================================================================
@@ -1048,7 +867,6 @@ textarea::placeholder{color:var(--muted-2)}
   function isSplashVisible() {
     return !splashEl.classList.contains("gone");
   }
-
   function hasFiles(dt) {
     if (!dt || !dt.types) return false;
     for (let i = 0; i < dt.types.length; i++) {
@@ -1062,7 +880,7 @@ textarea::placeholder{color:var(--muted-2)}
     dragDepth++;
     dropzone.classList.add("dragover");
   });
-  window.addEventListener("dragleave", (e) => {
+  window.addEventListener("dragleave", () => {
     if (!isSplashVisible()) return;
     dragDepth = Math.max(0, dragDepth - 1);
     if (dragDepth === 0) dropzone.classList.remove("dragover");
@@ -1086,12 +904,9 @@ textarea::placeholder{color:var(--muted-2)}
     }
   });
 
-  /* ---- Walk a drop's dataTransfer and return .txt Files ---- */
   async function extractFilesFromDrop(dt) {
     const out = [];
     const items = dt.items;
-
-    // Prefer webkitGetAsEntry (supports folders)
     if (items && items.length && typeof items[0].webkitGetAsEntry === "function") {
       const entries = [];
       for (let i = 0; i < items.length; i++) {
@@ -1105,7 +920,6 @@ textarea::placeholder{color:var(--muted-2)}
         return dedupeFiles(out);
       }
     }
-    // Fallback: simple FileList
     if (dt.files && dt.files.length) {
       for (const f of dt.files) {
         if (/\.txt$/i.test(f.name)) out.push(f);
@@ -1143,7 +957,6 @@ textarea::placeholder{color:var(--muted-2)}
     return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  /* ---- Dropzone click / keyboard ---- */
   dropzone.addEventListener("click", () => splashInput.click());
   dropzone.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -1161,7 +974,6 @@ textarea::placeholder{color:var(--muted-2)}
     handleFilesSelected(files);
   });
 
-  /* ---- Selection handler + transition ---- */
   function handleFilesSelected(files) {
     if (!files.length) {
       toast("No .txt files found", "err");
@@ -1178,7 +990,6 @@ textarea::placeholder{color:var(--muted-2)}
     splashEl.classList.add("gone");
     setTimeout(() => { splashEl.style.display = "none"; }, 420);
 
-    // Reset console so it's fresh for this session
     termEl.innerHTML = "";
     log("ulp://extractor v2.0 — ready.", "banner");
     log("Loaded " + state.dataFiles.length + " file(s).", "dim");
@@ -1189,12 +1000,10 @@ textarea::placeholder{color:var(--muted-2)}
   }
 
   function showSplash() {
-    // Reset file selection
     state.dataFiles = [];
     updateFilesBanner();
-
     splashEl.style.display = "";
-    void splashEl.offsetWidth;         // force reflow
+    void splashEl.offsetWidth;
     splashEl.classList.remove("gone");
     document.body.classList.remove("app-mode");
   }
@@ -1318,7 +1127,7 @@ textarea::placeholder{color:var(--muted-2)}
       outLabel.textContent = handle.name;
       outMeta.textContent = "Results will be written to ./" + handle.name + "/";
       outMeta.style.color = "var(--accent)";
-    } catch (e) { /* cancelled */ }
+    } catch (e) {}
   });
 
   /* ===================================================================
@@ -1541,7 +1350,6 @@ textarea::placeholder{color:var(--muted-2)}
       }
     });
 
-    // summary file
     if (state.dirHandle) {
       const item = document.createElement("div");
       item.className = "file-item";
@@ -1647,7 +1455,6 @@ textarea::placeholder{color:var(--muted-2)}
 
     printBanner();
 
-    /* ---- STEP 1: keywords ---- */
     log("");
     log("🔍 [STEP 1] Collecting keywords…", "step");
     const urls = getCombinedKeywords();
@@ -1663,7 +1470,6 @@ textarea::placeholder{color:var(--muted-2)}
     urls.slice(0, 4).forEach((u) => log("     • " + u));
     if (urls.length > 4) log("     • ... and " + (urls.length - 4) + " more");
 
-    /* ---- STEP 2: data files ---- */
     log("");
     log("📂 [STEP 2] Scanning data files…", "step");
     const files = state.dataFiles;
@@ -1681,7 +1487,6 @@ textarea::placeholder{color:var(--muted-2)}
       log("     • " + f.name + " (" + humanSize(f.size) + ")"));
     if (files.length > 4) log("     • ... and " + (files.length - 4) + " more");
 
-    /* ---- STEP 3: process ---- */
     state.running = true;
     runBtn.disabled = true;
     setPill("running", true);
@@ -1707,13 +1512,11 @@ textarea::placeholder{color:var(--muted-2)}
       console.error(e);
     }
 
-    /* ---- recount ---- */
     state.matchCounts = new Map();
     for (const [url, set] of state.processedLines.entries()) {
       state.matchCounts.set(url, set.size);
     }
 
-    /* ---- STEP 4: summary ---- */
     log("");
     log("   " + "-".repeat(56), "dim");
     log("");
@@ -1721,13 +1524,11 @@ textarea::placeholder{color:var(--muted-2)}
     const elapsed = (performance.now() - state.startTime) / 1000;
     await createSummary(elapsed);
 
-    /* ---- close writers ---- */
     for (const [, w] of state.writers) {
       try { await w.close(); } catch (e) {}
     }
     state.writers.clear();
 
-    /* ---- final ---- */
     printSummary(state.totalMatches, files.length, urls.length, elapsed);
     renderResults();
 
@@ -1741,7 +1542,7 @@ textarea::placeholder{color:var(--muted-2)}
   }
 
   /* ===================================================================
-     EVENTS
+     EVENTS + INIT
      =================================================================== */
   runBtn.addEventListener("click", run);
   clearBtn.addEventListener("click", () => {
@@ -1750,15 +1551,10 @@ textarea::placeholder{color:var(--muted-2)}
     setStatus("idle · console cleared");
   });
 
-  /* ===================================================================
-     INIT
-     =================================================================== */
   buildChips();
   updateKwHint();
   updateFilesBanner();
 
-  // If browser fully restores the page with files (rare), skip splash
-  // — otherwise always start on splash.
   if (document.body.classList.contains("app-mode")) {
     splashEl.style.display = "none";
     splashEl.classList.add("gone");
