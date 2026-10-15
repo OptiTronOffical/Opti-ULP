@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0b0f14" />
+<title>URL Extractor · v2.0</title>
+<style>
+/* =====================================================================
+   TOKENS
+   ===================================================================== */
+:root{
+  --bg:#0b0f14;
+  --card:#131920;
+  --card-2:#182029;
+  --card-3:#1d2733;
+  --border:#232c38;
+  --border-hi:#2f3d4d;
+  --text:#e6edf3;
+  --muted:#7d8a9a;
+  --muted-2:#556172;
+  --accent:#00e5a0;
+  --accent-dim:#00a874;
+  --accent-soft:rgba(0,229,160,.12);
+  --accent-glow:rgba(0,229,160,.35);
+  --warn:#ffb020;
+  --err:#ff5a5f;
+  --cyan:#35d4ff;
+  --radius:18px;
+  --radius-sm:12px;
+  --radius-xs:9px;
+  --shadow:0 8px 28px rgba(0,0,0,.45);
+  --shadow-sm:0 2px 10px rgba(0,0,0,.35);
+  --mono:ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --sans:-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+html{background:var(--bg);height:100%}
+body{
+  min-height:100dvh;
+  background:
+    radial-gradient(900px 500px at 50% -10%, rgba(0,229,160,.10), rgba(0,0,0,0) 60%),
+    radial-gradient(700px 500px at 100% 100%, rgba(53,212,255,.06), rgba(0,0,0,0) 60%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;               /* locked during splash */
+  padding-bottom:env(safe-area-inset-bottom);
+}
+body.app-mode{overflow:auto}
+
+/* =====================================================================
+   SPLASH LANDING SCREEN
+   ===================================================================== */
+.splash{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow-y:auto;
+  padding:28px 22px calc(28px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(900px 520px at 50% -10%, rgba(0,229,160,.14), rgba(0,0,0,0) 60%),
+    radial-gradient(700px 500px at 100% 110%, rgba(53,212,255,.08), rgba(0,0,0,0) 60%),
+    var(--bg);
+  transition:opacity .4s ease, transform .4s ease;
+}
+.splash.gone{
+  opacity:0;
+  pointer-events:none;
+  transform:scale(1.02);
+}
+.splash-inner{
+  width:100%;
+  max-width:460px;
+  margin:auto;
+  display:flex;
+  flex-direction:column;
+  gap:26px;
+}
+
+/* ---- Brand block ---- */
+.splash-brand{
+  text-align:center;
+  opacity:0;
+  transform:translateY(14px);
+  animation:splashIn .65s cubic-bezier(.2,.8,.2,1) .05s forwards;
+}
+.splash-logo{
+  position:relative;
+  width:78px;
+  height:78px;
+  margin:0 auto 18px;
+  border-radius:22px;
+  display:grid;
+  place-items:center;
+  font-size:34px;
+  background:linear-gradient(135deg, #00e5a0, #00a874);
+  color:#04140d;
+  box-shadow:
+    0 10px 30px rgba(0,229,160,.35),
+    inset 0 1px 0 rgba(255,255,255,.3);
+}
+.splash-logo-ring{
+  position:absolute;
+  inset:-8px;
+  border-radius:28px;
+  border:1.5px solid rgba(0,229,160,.35);
+  animation:ringPulse 2.4s ease-out infinite;
+  pointer-events:none;
+}
+.splash-logo-ring::after{
+  content:"";
+  position:absolute;
+  inset:-12px;
+  border-radius:34px;
+  border:1px solid rgba(0,229,160,.18);
+  animation:ringPulse 2.4s ease-out .4s infinite;
+}
+@keyframes ringPulse{
+  0%{transform:scale(.95);opacity:.9}
+  100%{transform:scale(1.15);opacity:0}
+}
+.splash-brand h1{
+  margin:0;
+  font-size:26px;
+  font-weight:700;
+  letter-spacing:-.5px;
+  color:var(--text);
+}
+.splash-brand p{
+  margin:7px 0 0;
+  font-size:13.5px;
+  color:var(--muted);
+  letter-spacing:.1px;
+}
+
+/* ---- Dropzone ---- */
+.dropzone{
+  position:relative;
+  border:2px dashed var(--border-hi);
+  border-radius:24px;
+  padding:44px 22px 38px;
+  text-align:center;
+  cursor:pointer;
+  user-select:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
+  transition:
+    border-color .25s,
+    background .25s,
+    transform .25s cubic-bezier(.2,.8,.2,1),
+    box-shadow .25s;
+  overflow:hidden;
+  opacity:0;
+  transform:translateY(14px);
+  animation:splashIn .65s cubic-bezier(.2,.8,.2,1) .15s forwards;
+  outline:none;
+}
+.dropzone::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:22px;
+  background:radial-gradient(400px 200px at 50% 0%, rgba(0,229,160,.10), rgba(0,0,0,0) 70%);
+  opacity:0;
+  transition:opacity .25s;
+  pointer-events:none;
+}
+.dropzone:hover,
+.dropzone:focus-visible{
+  border-color:var(--accent-dim);
+  background:linear-gradient(180deg, rgba(0,229,160,.045), rgba(0,229,160,.01));
+}
+.dropzone:hover::before,
+.dropzone:focus-visible::before{opacity:1}
+.dropzone:active{transform:scale(.99)}
+
+.dropzone.dragover{
+  border-color:var(--accent);
+  border-style:solid;
+  background:linear-gradient(180deg, rgba(0,229,160,.12), rgba(0,229,160,.03));
+  box-shadow:
+    0 0 0 4px rgba(0,229,160,.12),
+    0 14px 44px rgba(0,229,160,.28);
+  transform:scale(1.015);
+}
+.dropzone.dragover::before{opacity:1}
+
+.dropzone-icon{
+  width:72px;
+  height:72px;
+  margin:0 auto 20px;
+  border-radius:22px;
+  background:linear-gradient(135deg, rgba(0,229,160,.16), rgba(0,229,160,.04));
+  border:1px solid rgba(0,229,160,.25);
+  display:grid;
+  place-items:center;
+  font-size:31px;
+  box-shadow:0 8px 26px rgba(0,229,160,.14);
+  animation:float 3.2s ease-in-out infinite;
+}
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-7px)}
+}
+.dropzone.dragover .dropzone-icon{
+  animation:none;
+  transform:scale(1.08) translateY(-4px);
+  background:linear-gradient(135deg, rgba(0,229,160,.28), rgba(0,229,160,.10));
+  box-shadow:0 12px 34px rgba(0,229,160,.35);
+  transition:transform .25s, background .25s, box-shadow .25s;
+}
+.dropzone-title{
+  font-size:17px;
+  font-weight:650;
+  color:var(--text);
+  letter-spacing:-.2px;
+  margin-bottom:6px;
+}
+.dropzone-sub{
+  font-size:13px;
+  color:var(--muted);
+}
+.dropzone-tags{
+  display:flex;
+  justify-content:center;
+  gap:7px;
+  margin-top:20px;
+  flex-wrap:wrap;
+}
+.mini-tag{
+  font-size:10.5px;
+  font-weight:600;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);
+  color:var(--muted);
+  letter-spacing:.3px;
+}
+.dropzone.dragover .mini-tag{
+  border-color:rgba(0,229,160,.3);
+  color:var(--accent);
+  background:rgba(0,229,160,.08);
+  transition:.25s;
+}
+
+.splash-foot{
+  text-align:center;
+  font-size:11.5px;
+  color:var(--muted-2);
+  letter-spacing:.2px;
+  opacity:0;
+  transform:translateY(14px);
+  animation:splashIn .65s cubic-bezier(.2,.8,.2,1) .25s forwards;
+}
+@keyframes splashIn{
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* =====================================================================
+   APP SHELL
+   ===================================================================== */
+.app{
+  max-width:640px;
+  margin:0 auto;
+  padding:0 16px 40px;
+  opacity:0;
+  transform:translateY(12px);
+  transition:
+    opacity .5s ease .05s,
+    transform .5s cubic-bezier(.2,.8,.2,1) .05s;
+}
+body.app-mode .app{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* ---------- Sticky app bar ---------- */
+.app-bar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  margin:0 -16px 14px;
+  padding:calc(env(safe-area-inset-top) + 14px) 16px 12px;
+  background:rgba(11,15,20,.82);
+  backdrop-filter:saturate(180%) blur(18px);
+  -webkit-backdrop-filter:saturate(180%) blur(18px);
+  border-bottom:1px solid rgba(255,255,255,.04);
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.brand{
+  display:flex;align-items:center;gap:11px;flex:1;min-width:0;
+}
+.logo{
+  width:38px;height:38px;flex-shrink:0;
+  border-radius:11px;
+  display:grid;place-items:center;
+  font-size:19px;
+  background:linear-gradient(135deg, #00e5a0, #00a874);
+  color:#04140d;
+  box-shadow:0 4px 16px rgba(0,229,160,.35), inset 0 1px 0 rgba(255,255,255,.25);
+}
+.brand h1{
+  margin:0;
+  font-size:16px;
+  font-weight:650;
+  letter-spacing:-.2px;
+  color:var(--text);
+}
+.brand p{
+  margin:1px 0 0;
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:.3px;
+}
+.status-pill{
+  font-size:11px;
+  font-weight:600;
+  padding:5px 10px;
+  border-radius:999px;
+  background:var(--card-2);
+  border:1px solid var(--border);
+  color:var(--muted);
+  white-space:nowrap;
+  transition:.2s;
+}
+.status-pill.live{
+  color:var(--accent);
+  border-color:var(--accent-dim);
+  background:var(--accent-soft);
+  box-shadow:0 0 12px var(--accent-glow);
+}
+.status-pill.live::before{
+  content:"";display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--accent);margin-right:6px;vertical-align:1px;
+  animation:pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* =====================================================================
+   FILES BANNER
+   ===================================================================== */
+.files-banner{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  margin-bottom:12px;
+  box-shadow:var(--shadow-sm);
+}
+.files-banner-icon{
+  width:38px;height:38px;flex-shrink:0;
+  border-radius:11px;
+  background:var(--accent-soft);
+  border:1px solid rgba(0,229,160,.22);
+  display:grid;place-items:center;
+  font-size:17px;
+}
+.files-banner-info{flex:1;min-width:0}
+.files-banner-title{
+  font-size:13px;
+  font-weight:650;
+  color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.files-banner-sub{
+  font-size:11.5px;
+  color:var(--muted);
+  margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* =====================================================================
+   CARDS
+   ===================================================================== */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  margin-bottom:12px;
+  box-shadow:var(--shadow-sm);
+}
+.card-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+}
+.card-head .icon{
+  width:30px;height:30px;flex-shrink:0;
+  border-radius:9px;
+  display:grid;place-items:center;
+  font-size:15px;
+  background:var(--card-3);
+  border:1px solid var(--border);
+}
+.card-head h2{
+  margin:0;
+  font-size:13px;
+  font-weight:650;
+  letter-spacing:.3px;
+  color:var(--text);
+  flex:1;
+  text-transform:uppercase;
+}
+.card-head .sub{
+  font-size:11px;
+  color:var(--muted);
+  font-weight:500;
+  letter-spacing:0;
+  text-transform:none;
+}
+
+/* =====================================================================
+   BUTTONS
+   ===================================================================== */
+.btn{
+  appearance:none;
+  font:inherit;
+  font-size:13.5px;
+  font-weight:550;
+  color:var(--text);
+  background:var(--card-2);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:11px 14px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:transform .08s, background .15s, border-color .15s, box-shadow .15s;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  min-width:0;
+  user-select:none;
+}
+.btn:hover:not(:disabled){background:var(--card-3);border-color:var(--border-hi)}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn .ico{font-size:15px;line-height:1;flex-shrink:0}
+.btn.primary{
+  background:linear-gradient(180deg, #00e5a0, #00b87f);
+  color:#04140d;
+  border-color:transparent;
+  box-shadow:0 6px 20px rgba(0,229,160,.28), inset 0 1px 0 rgba(255,255,255,.3);
+  font-weight:700;
+  letter-spacing:.2px;
+}
+.btn.primary:hover:not(:disabled){box-shadow:0 8px 26px rgba(0,229,160,.45)}
+.btn.ghost{background:transparent;border-color:var(--border)}
+.btn.ghost:hover:not(:disabled){background:var(--card-2)}
+.btn.soft{
+  background:var(--accent-soft);
+  border-color:rgba(0,229,160,.28);
+  color:var(--accent);
+}
+.btn.small{padding:7px 11px;font-size:12px;border-radius:9px}
+
+/* =====================================================================
+   KEYWORD CHIPS
+   ===================================================================== */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:9px 13px 9px 11px;
+  border-radius:999px;
+  background:var(--card-2);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-size:13px;
+  font-weight:550;
+  cursor:pointer;
+  user-select:none;
+  transition:.15s;
+}
+.chip:hover{background:var(--card-3);border-color:var(--border-hi)}
+.chip .emoji{font-size:14px;line-height:1}
+.chip .count{
+  font-size:10.5px;font-weight:600;
+  color:var(--muted);
+  background:rgba(255,255,255,.04);
+  padding:1px 6px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  transition:.15s;
+}
+.chip.on{
+  background:var(--accent-soft);
+  border-color:var(--accent-dim);
+  color:var(--accent);
+  box-shadow:0 0 0 1px rgba(0,229,160,.15), 0 4px 14px rgba(0,229,160,.10);
+}
+.chip.on .count{
+  color:var(--accent);
+  border-color:rgba(0,229,160,.3);
+  background:rgba(0,229,160,.10);
+}
+.chip.on::after{content:"✓";font-size:11px;font-weight:800;margin-left:1px}
+
+/* =====================================================================
+   TEXTAREA
+   ===================================================================== */
+.field{display:flex;flex-direction:column;gap:6px}
+.ta-wrap{
+  position:relative;
+  border-radius:var(--radius-sm);
+  overflow:hidden;
+  border:1px solid var(--border);
+  background:var(--card-2);
+  transition:.15s;
+}
+.ta-wrap:focus-within{
+  border-color:var(--accent-dim);
+  box-shadow:0 0 0 3px rgba(0,229,160,.10);
+}
+textarea{
+  width:100%;
+  min-height:110px;
+  max-height:280px;
+  resize:vertical;
+  padding:12px 14px;
+  font:13px/1.55 var(--mono);
+  color:var(--text);
+  background:transparent;
+  border:0;
+  outline:0;
+  letter-spacing:-.1px;
+  tab-size:2;
+}
+textarea::placeholder{color:var(--muted-2)}
+.ta-foot{display:flex;align-items:center;gap:8px;padding:0 2px}
+.ta-foot .hint{
+  flex:1;
+  font-size:11.5px;
+  color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.ta-foot .hint b{color:var(--accent);font-weight:600}
+
+/* =====================================================================
+   RUN BUTTON
+   ===================================================================== */
+.cta{margin:14px 0 12px}
+.cta .btn{
+  width:100%;
+  padding:16px;
+  font-size:15px;
+  border-radius:var(--radius);
+  letter-spacing:.4px;
+}
+.cta .btn .ico{font-size:17px}
+
+/* =====================================================================
+   CONSOLE
+   ===================================================================== */
+.console{
+  background:#05090c;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  margin-bottom:12px;
+  box-shadow:var(--shadow);
+}
+.console-bar{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 14px;
+  background:linear-gradient(180deg,#0d141a,#080d11);
+  border-bottom:1px solid var(--border);
+}
+.dots{display:flex;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot.r{background:#3a1518;border:1px solid #6e2226}
+.dot.y{background:#3a2f10;border:1px solid #6e5a22}
+.dot.g{background:#0f2f1f;border:1px solid #1d6640}
+.console-bar .title{
+  flex:1;
+  font:11.5px var(--mono);
+  color:var(--muted);
+  letter-spacing:.4px;
+  text-align:center;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.console-bar .btn{
+  padding:4px 9px;
+  font-size:11px;
+  border-radius:7px;
+  background:transparent;
+  border-color:transparent;
+  color:var(--muted);
+}
+.console-bar .btn:hover{color:var(--text);background:rgba(255,255,255,.05)}
+
+#terminal{
+  height:min(46vh,380px);
+  overflow-y:auto;
+  padding:12px 14px;
+  font:12px/1.55 var(--mono);
+  scrollbar-width:thin;
+  scrollbar-color:var(--border-hi) transparent;
+}
+#terminal::-webkit-scrollbar{width:8px}
+#terminal::-webkit-scrollbar-track{background:transparent}
+#terminal::-webkit-scrollbar-thumb{background:#1f2b38;border-radius:6px;border:2px solid #05090c}
+#terminal::-webkit-scrollbar-thumb:hover{background:#2b3a4a}
+
+.line{white-space:pre-wrap;word-break:break-word;color:#8a9aad;margin:0}
+.line.banner{color:var(--accent);font-weight:600;text-shadow:0 0 10px rgba(0,229,160,.35)}
+.line.dim{color:#54616f}
+.line.ok{color:var(--accent)}
+.line.step{color:var(--cyan);margin-top:6px;font-weight:600}
+.line.warn{color:var(--warn)}
+.line.err{color:var(--err)}
+.line.hit{color:var(--warn)}
+.line .fname{color:var(--cyan)}
+.line .kw{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.line .muted{color:var(--muted-2)}
+
+#statusbar{
+  padding:9px 14px;
+  border-top:1px solid var(--border);
+  background:#080d11;
+  font:11.5px var(--mono);
+  color:var(--accent);
+  min-height:32px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* =====================================================================
+   RESULTS
+   ===================================================================== */
+.results-empty{
+  font-size:12.5px;
+  color:var(--muted-2);
+  text-align:center;
+  padding:14px 0 6px;
+}
+.result-banner{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:11px 13px;
+  border-radius:var(--radius-sm);
+  background:var(--accent-soft);
+  border:1px solid rgba(0,229,160,.22);
+  color:var(--accent);
+  font-size:12.5px;
+  font-weight:600;
+  margin-bottom:12px;
+}
+.result-banner .ico{font-size:15px}
+
+.file-grid{display:grid;grid-template-columns:1fr;gap:7px;margin-top:4px}
+.file-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;
+  border-radius:var(--radius-xs);
+  background:var(--card-2);
+  border:1px solid var(--border);
+  font-size:12.5px;
+  overflow:hidden;
+  transition:.12s;
+  text-decoration:none;
+  color:var(--text);
+}
+.file-item:hover{background:var(--card-3);border-color:var(--border-hi)}
+.file-item .badge{
+  flex-shrink:0;
+  font:10.5px var(--mono);
+  font-weight:700;
+  color:var(--accent);
+  background:rgba(0,229,160,.10);
+  border:1px solid rgba(0,229,160,.22);
+  padding:2px 7px;
+  border-radius:999px;
+  min-width:34px;
+  text-align:center;
+}
+.file-item .name{
+  flex:1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:var(--mono);
+  font-size:11.5px;
+  color:var(--muted);
+}
+.file-item:hover .name{color:var(--text)}
+.file-item .dl{flex-shrink:0;font-size:11px;color:var(--accent);opacity:.85}
+
+/* =====================================================================
+   TOAST
+   ===================================================================== */
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:calc(env(safe-area-inset-bottom) + 20px);
+  transform:translate(-50%,30px);
+  background:var(--card-3);
+  color:var(--text);
+  border:1px solid var(--border-hi);
+  border-radius:999px;
+  padding:10px 18px;
+  font-size:13px;
+  font-weight:550;
+  box-shadow:var(--shadow);
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+  z-index:200;
+  max-width:90vw;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.ok{border-color:var(--accent-dim);color:var(--accent)}
+.toast.err{border-color:#5a2024;color:var(--err)}
+
+/* =====================================================================
+   MISC
+   ===================================================================== */
+.hidden{display:none !important}
+
+@media (min-width:520px){
+  .file-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- =====================================================================
+     SPLASH LANDING SCREEN
+     ===================================================================== -->
+<div class="splash" id="splash">
+  <div class="splash-inner">
+
+    <div class="splash-brand">
+      <div class="splash-logo">
+        <span class="splash-logo-ring"></span>
+        ⚡
+      </div>
+      <h1>URL Extractor</h1>
+      <p>Real-time line matching across .txt files</p>
+    </div>
+
+    <div class="dropzone" id="dropzone" role="button" tabindex="0"
+         aria-label="Drop .txt files here, or tap to browse">
+      <div class="dropzone-icon">📁</div>
+      <div class="dropzone-title">Drop .txt files here</div>
+      <div class="dropzone-sub">or tap to browse</div>
+      <div class="dropzone-tags">
+        <span class="mini-tag">Multiple files</span>
+        <span class="mini-tag">Folders OK</span>
+      </div>
+    </div>
+
+    <input type="file" id="splashInput" accept=".txt,text/plain" multiple hidden />
+
+    <div class="splash-foot">🔒 Files never leave your device</div>
+
+  </div>
+</div>
+
+<!-- =====================================================================
+     MAIN APP
+     ===================================================================== -->
+<div class="app" id="app">
+
+  <!-- ============== APP BAR ============== -->
+  <header class="app-bar">
+    <div class="brand">
+      <div class="logo">⚡</div>
+      <div>
+        <h1>URL Extractor</h1>
+        <p>Real-time line matching · v2.0</p>
+      </div>
+    </div>
+    <div class="status-pill" id="statusPill">idle</div>
+  </header>
+
+  <!-- ============== FILES BANNER ============== -->
+  <div class="files-banner" id="filesBanner">
+    <div class="files-banner-icon">📁</div>
+    <div class="files-banner-info">
+      <div class="files-banner-title" id="filesBannerTitle">No files loaded</div>
+      <div class="files-banner-sub" id="filesBannerSub">Drop some .txt files to begin</div>
+    </div>
+    <button class="btn small ghost" type="button" id="changeFilesBtn">Change</button>
+  </div>
+
+  <!-- ============== QUICK KEYWORDS ============== -->
+  <section class="card">
+    <div class="card-head">
+      <div class="icon">⚡</div>
+      <h2>Quick Keywords</h2>
+      <span class="sub" id="catCount">0 selected</span>
+    </div>
+    <div class="chips" id="chips"></div>
+  </section>
+
+  <!-- ============== CUSTOM KEYWORDS ============== -->
+  <section class="card">
+    <div class="card-head">
+      <div class="icon">✏️</div>
+      <h2>Custom Keywords</h2>
+      <button class="btn small ghost" type="button" id="importKw">
+        <span class="ico">⬆</span> Import .txt
+      </button>
+    </div>
+    <div class="field">
+      <div class="ta-wrap">
+        <textarea id="customKw" spellcheck="false" autocapitalize="off" autocomplete="off"
+          placeholder="One keyword per line, e.g.&#10;/admin/login&#10;/api/v2/users&#10;config.php"></textarea>
+      </div>
+      <div class="ta-foot">
+        <span class="hint" id="kwHint">Enter keywords above, or toggle a category</span>
+      </div>
+    </div>
+    <input type="file" id="kwFile" accept=".txt,text/plain" hidden />
+  </section>
+
+  <!-- ============== OUTPUT ============== -->
+  <section class="card">
+    <div class="card-head">
+      <div class="icon">💾</div>
+      <h2>Output</h2>
+    </div>
+    <button class="btn ghost" type="button" id="pickOutput" style="width:100%;justify-content:flex-start">
+      <span class="ico">📁</span>
+      <span id="outLabel">Choose output folder</span>
+    </button>
+    <div class="file-meta" id="outMeta" style="margin-top:8px;font-size:11.5px;color:var(--muted)">
+      Falls back to browser downloads if unsupported
+    </div>
+  </section>
+
+  <!-- ============== RUN ============== -->
+  <div class="cta">
+    <button class="btn primary" type="button" id="runBtn">
+      <span class="ico">▶</span> RUN EXTRACTION
+    </button>
+  </div>
+
+  <!-- ============== CONSOLE ============== -->
+  <section class="console">
+    <div class="console-bar">
+      <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+      <div class="title">live output</div>
+      <button class="btn" type="button" id="clearBtn">clear</button>
+    </div>
+    <div id="terminal"></div>
+    <div id="statusbar">idle · waiting for input…</div>
+  </section>
+
+  <!-- ============== RESULTS ============== -->
+  <section class="card" id="resultsCard">
+    <div class="card-head">
+      <div class="icon">📊</div>
+      <h2>Results</h2>
+      <span class="sub" id="resultsCount"></span>
+    </div>
+    <div class="results-empty" id="resultsBody">No results yet — configure and run.</div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ===================================================================
+     PRESET KEYWORD CATEGORIES
+     =================================================================== */
+  const CATEGORIES = [
+    { id:"admin", label:"Admin", icon:"🛡️", keywords:[
+      "admin/login","admin/dashboard","/admin/","admin.php",
+      "wp-admin","adminpanel","admin_area","administrator"] },
+    { id:"auth", label:"Auth", icon:"🔑", keywords:[
+      "/login","login.php","signin","sign-in","logout",
+      "auth","authenticate","password"] },
+    { id:"api", label:"API", icon:"🔌", keywords:[
+      "/api/","api/v1","api/v2","/graphql","swagger","openapi","/rest/"] },
+    { id:"config", label:"Config", icon:"⚙️", keywords:[
+      ".env","config.php","web.config",".git/config","settings.py",
+      "wp-config",".htaccess"] },
+    { id:"backup", label:"Backup", icon:"💾", keywords:[
+      ".sql",".bak","/backup","dump.sql","database.sql",".tar.gz",".zip"] },
+    { id:"upload", label:"Uploads", icon:"📁", keywords:[
+      "/uploads/","/files/","filemanager","/media/","/attachments/"] },
+    { id:"dev", label:"Dev / Test", icon:"🧪", keywords:[
+      "localhost","/test/","/dev/","/staging/","debug","/sandbox/"] },
+    { id:"docs", label:"Docs", icon:"📖", keywords:[
+      "/docs/","/documentation/","readme","changelog","/help/","/manual/"] }
+  ];
+
+  /* ===================================================================
+     DOM
+     =================================================================== */
+  const $ = (id) => document.getElementById(id);
+
+  const splashEl   = $("splash");
+  const dropzone   = $("dropzone");
+  const splashInput= $("splashInput");
+  const appEl      = $("app");
+
+  const statusPill = $("statusPill");
+  const toastEl    = $("toast");
+
+  const filesBannerTitle = $("filesBannerTitle");
+  const filesBannerSub   = $("filesBannerSub");
+  const changeFilesBtn   = $("changeFilesBtn");
+
+  const chipsEl    = $("chips");
+  const catCount   = $("catCount");
+
+  const customKw   = $("customKw");
+  const importKw   = $("importKw");
+  const kwFile     = $("kwFile");
+  const kwHint     = $("kwHint");
+
+  const pickOutput = $("pickOutput");
+  const outLabel   = $("outLabel");
+  const outMeta    = $("outMeta");
+
+  const runBtn     = $("runBtn");
+  const clearBtn   = $("clearBtn");
+
+  const termEl     = $("terminal");
+  const statusEl   = $("statusbar");
+
+  const resultsBody  = $("resultsBody");
+  const resultsCount = $("resultsCount");
+
+  const supportsFS = typeof window.showDirectoryPicker === "function";
+
+  /* ===================================================================
+     STATE
+     =================================================================== */
+  const state = {
+    running: false,
+    checked: new Set(),
+    customLines: [],
+    dataFiles: [],
+    processedLines: new Map(),
+    matchCounts: new Map(),
+    buffers: new Map(),
+    writers: new Map(),
+    producedSet: new Set(),
+    producedFiles: [],
+    dirHandle: null,
+    summaryText: "",
+    totalMatches: 0,
+    blobItems: [],
+    startTime: 0
+  };
+
+  /* ===================================================================
+     UTILITIES
+     =================================================================== */
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+  const nextTick = () => new Promise((r) => setTimeout(r, 0));
+  const fmtNum = (n) => Number(n).toLocaleString("en-US");
+  const humanSize = (b) => {
+    if (b < 1024) return b + " B";
+    if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
+    return (b / 1048576).toFixed(2) + " MB";
+  };
+
+  function toast(msg, kind) {
+    toastEl.textContent = msg;
+    toastEl.className = "toast show" + (kind ? " " + kind : "");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { toastEl.className = "toast"; }, 2400);
+  }
+
+  function setStatus(text) { statusEl.textContent = text; }
+  function setPill(text, live) {
+    statusPill.textContent = text;
+    statusPill.className = "status-pill" + (live ? " live" : "");
+  }
+
+  function log(text, cls) {
+    const div = document.createElement("div");
+    div.className = "line" + (cls ? " " + cls : "");
+    div.textContent = text;
+    termEl.appendChild(div);
+    termEl.scrollTop = termEl.scrollHeight;
+    return div;
+  }
+  function logHTML(html, cls) {
+    const div = document.createElement("div");
+    div.className = "line" + (cls ? " " + cls : "");
+    div.innerHTML = html;
+    termEl.appendChild(div);
+    termEl.scrollTop = termEl.scrollHeight;
+    return div;
+  }
+
+  /* ===================================================================
+     URL → FILENAME
+     =================================================================== */
+  function parseUrlParts(url) {
+    try { const u = new URL(url); return { netloc: u.host, path: u.pathname }; }
+    catch (_) {}
+    let s = String(url);
+    const m = s.match(/^[a-zA-Z][a-zA-Z0-9+.\-]*:\/\//);
+    if (m) s = s.slice(m[0].length);
+    s = s.split("#")[0].split("?")[0];
+    const i = s.indexOf("/");
+    if (i === -1) return { netloc: s, path: "" };
+    return { netloc: s.slice(0, i), path: s.slice(i + 1) };
+  }
+  function sanitizeFilename(url) {
+    const { netloc, path } = parseUrlParts(url);
+    const domain = netloc.replace(/^www\./, "");
+    const clean = path.replace(/^\/+|\/+$/g, "");
+    let name = clean ? domain + "_" + clean : domain;
+    name = name.replace(/[<>:"/\\|?*]/g, "_");
+    if (name.length > 200) name = name.slice(0, 200);
+    if (!name) name = "unknown";
+    return name + "-hits.txt";
+  }
+
+  /* ===================================================================
+     SPLASH: DRAG & DROP
+     =================================================================== */
+  let dragDepth = 0;
+
+  function isSplashVisible() {
+    return !splashEl.classList.contains("gone");
+  }
+
+  function hasFiles(dt) {
+    if (!dt || !dt.types) return false;
+    for (let i = 0; i < dt.types.length; i++) {
+      if (dt.types[i] === "Files") return true;
+    }
+    return false;
+  }
+
+  window.addEventListener("dragenter", (e) => {
+    if (!isSplashVisible() || !hasFiles(e.dataTransfer)) return;
+    dragDepth++;
+    dropzone.classList.add("dragover");
+  });
+  window.addEventListener("dragleave", (e) => {
+    if (!isSplashVisible()) return;
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) dropzone.classList.remove("dragover");
+  });
+  window.addEventListener("dragover", (e) => {
+    if (!isSplashVisible()) return;
+    if (hasFiles(e.dataTransfer)) e.preventDefault();
+  });
+  window.addEventListener("drop", async (e) => {
+    if (!isSplashVisible()) return;
+    if (!hasFiles(e.dataTransfer)) return;
+    e.preventDefault();
+    dragDepth = 0;
+    dropzone.classList.remove("dragover");
+    try {
+      const files = await extractFilesFromDrop(e.dataTransfer);
+      handleFilesSelected(files);
+    } catch (err) {
+      console.error(err);
+      toast("Could not read dropped items", "err");
+    }
+  });
+
+  /* ---- Walk a drop's dataTransfer and return .txt Files ---- */
+  async function extractFilesFromDrop(dt) {
+    const out = [];
+    const items = dt.items;
+
+    // Prefer webkitGetAsEntry (supports folders)
+    if (items && items.length && typeof items[0].webkitGetAsEntry === "function") {
+      const entries = [];
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        if (it.kind !== "file") continue;
+        const entry = it.webkitGetAsEntry();
+        if (entry) entries.push(entry);
+      }
+      if (entries.length) {
+        for (const en of entries) await walkEntry(en, out);
+        return dedupeFiles(out);
+      }
+    }
+    // Fallback: simple FileList
+    if (dt.files && dt.files.length) {
+      for (const f of dt.files) {
+        if (/\.txt$/i.test(f.name)) out.push(f);
+      }
+    }
+    return dedupeFiles(out);
+  }
+
+  async function walkEntry(entry, out) {
+    if (entry.isFile) {
+      if (/\.txt$/i.test(entry.name)) {
+        try {
+          const file = await new Promise((res, rej) => entry.file(res, rej));
+          out.push(file);
+        } catch (_) {}
+      }
+      return;
+    }
+    if (entry.isDirectory) {
+      const reader = entry.createReader();
+      while (true) {
+        const batch = await new Promise((res, rej) => reader.readEntries(res, rej));
+        if (!batch || !batch.length) break;
+        for (const e of batch) await walkEntry(e, out);
+      }
+    }
+  }
+
+  function dedupeFiles(list) {
+    const map = new Map();
+    for (const f of list) {
+      const k = f.name + "|" + f.size + "|" + f.lastModified;
+      if (!map.has(k)) map.set(k, f);
+    }
+    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  /* ---- Dropzone click / keyboard ---- */
+  dropzone.addEventListener("click", () => splashInput.click());
+  dropzone.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      splashInput.click();
+    }
+  });
+
+  splashInput.addEventListener("change", () => {
+    const files = [];
+    for (const f of splashInput.files || []) {
+      if (/\.txt$/i.test(f.name)) files.push(f);
+    }
+    splashInput.value = "";
+    handleFilesSelected(files);
+  });
+
+  /* ---- Selection handler + transition ---- */
+  function handleFilesSelected(files) {
+    if (!files.length) {
+      toast("No .txt files found", "err");
+      return;
+    }
+    state.dataFiles = files;
+    updateFilesBanner();
+    showApp();
+    toast(files.length + " file(s) loaded", "ok");
+  }
+
+  function showApp() {
+    document.body.classList.add("app-mode");
+    splashEl.classList.add("gone");
+    setTimeout(() => { splashEl.style.display = "none"; }, 420);
+
+    // Reset console so it's fresh for this session
+    termEl.innerHTML = "";
+    log("ulp://extractor v2.0 — ready.", "banner");
+    log("Loaded " + state.dataFiles.length + " file(s).", "dim");
+    log("Toggle a preset category or paste custom keywords,", "dim");
+    log("then tap RUN EXTRACTION.", "dim");
+    setStatus("idle · waiting for input…");
+    setPill("idle");
+  }
+
+  function showSplash() {
+    // Reset file selection
+    state.dataFiles = [];
+    updateFilesBanner();
+
+    splashEl.style.display = "";
+    void splashEl.offsetWidth;         // force reflow
+    splashEl.classList.remove("gone");
+    document.body.classList.remove("app-mode");
+  }
+
+  changeFilesBtn.addEventListener("click", showSplash);
+
+  /* ===================================================================
+     FILES BANNER
+     =================================================================== */
+  function updateFilesBanner() {
+    const n = state.dataFiles.length;
+    if (!n) {
+      filesBannerTitle.textContent = "No files loaded";
+      filesBannerSub.textContent = "Drop some .txt files to begin";
+      return;
+    }
+    const total = state.dataFiles.reduce((s, f) => s + f.size, 0);
+    filesBannerTitle.textContent =
+      n + " file" + (n === 1 ? "" : "s") + " ready · " + humanSize(total);
+    filesBannerSub.textContent =
+      state.dataFiles.slice(0, 3).map((f) => f.name).join(" · ") +
+      (n > 3 ? " · +" + (n - 3) + " more" : "");
+  }
+
+  /* ===================================================================
+     KEYWORD CHIPS
+     =================================================================== */
+  function buildChips() {
+    chipsEl.innerHTML = "";
+    CATEGORIES.forEach((cat) => {
+      const el = document.createElement("div");
+      el.className = "chip" + (state.checked.has(cat.id) ? " on" : "");
+      el.dataset.id = cat.id;
+      el.innerHTML =
+        '<span class="emoji">' + cat.icon + "</span>" +
+        "<span>" + cat.label + "</span>" +
+        '<span class="count">' + cat.keywords.length + "</span>";
+      el.addEventListener("click", () => toggleCategory(cat.id));
+      chipsEl.appendChild(el);
+    });
+    updateCatCount();
+  }
+  function toggleCategory(id) {
+    if (state.checked.has(id)) state.checked.delete(id);
+    else state.checked.add(id);
+    document.querySelectorAll(".chip").forEach((el) => {
+      el.classList.toggle("on", state.checked.has(el.dataset.id));
+    });
+    updateCatCount();
+    updateKwHint();
+  }
+  function updateCatCount() {
+    const n = state.checked.size;
+    catCount.textContent = n === 0 ? "0 selected" : n + " selected";
+  }
+  function getCombinedKeywords() {
+    const set = new Set();
+    for (const id of state.checked) {
+      const cat = CATEGORIES.find((c) => c.id === id);
+      if (cat) cat.keywords.forEach((k) => set.add(k));
+    }
+    state.customLines.forEach((l) => set.add(l));
+    return [...set];
+  }
+  function updateKwHint() {
+    const combined = getCombinedKeywords();
+    let autoCount = 0;
+    for (const id of state.checked) {
+      const cat = CATEGORIES.find((c) => c.id === id);
+      if (cat) autoCount += cat.keywords.length;
+    }
+    const customCount = state.customLines.length;
+    if (combined.length === 0) {
+      kwHint.innerHTML = "Enter keywords above, or toggle a category";
+      return;
+    }
+    const parts = [];
+    if (autoCount) parts.push("<b>" + autoCount + "</b> preset");
+    if (customCount) parts.push("<b>" + customCount + "</b> custom");
+    kwHint.innerHTML =
+      parts.join(" · ") + "  →  <b>" + combined.length + "</b> unique keyword" +
+      (combined.length === 1 ? "" : "s");
+  }
+
+  customKw.addEventListener("input", () => {
+    state.customLines = customKw.value
+      .split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    updateKwHint();
+  });
+
+  importKw.addEventListener("click", () => kwFile.click());
+  kwFile.addEventListener("change", async () => {
+    const f = kwFile.files && kwFile.files[0];
+    if (!f) return;
+    try {
+      const text = await f.text();
+      const existing = customKw.value.trim();
+      customKw.value = (existing ? existing + "\n" : "") + text.trim();
+      customKw.dispatchEvent(new Event("input"));
+      toast("Imported " + f.name, "ok");
+    } catch (e) {
+      toast("Import failed: " + e.message, "err");
+    } finally {
+      kwFile.value = "";
+    }
+  });
+
+  /* ===================================================================
+     OUTPUT FOLDER
+     =================================================================== */
+  if (!supportsFS) {
+    pickOutput.disabled = true;
+    outLabel.textContent = "Output folder unavailable";
+    outMeta.textContent = "Browser has no File System Access API — will use downloads";
+  }
+  pickOutput.addEventListener("click", async () => {
+    if (!supportsFS) return;
+    try {
+      const handle = await window.showDirectoryPicker({ mode: "readwrite" });
+      state.dirHandle = handle;
+      outLabel.textContent = handle.name;
+      outMeta.textContent = "Results will be written to ./" + handle.name + "/";
+      outMeta.style.color = "var(--accent)";
+    } catch (e) { /* cancelled */ }
+  });
+
+  /* ===================================================================
+     DEDUPE + APPEND
+     =================================================================== */
+  function isDuplicate(url, fileName, lineNum, content) {
+    let set = state.processedLines.get(url);
+    if (!set) { set = new Set(); state.processedLines.set(url, set); }
+    const id = url + "|" + fileName + "|" + lineNum + "|" + content;
+    if (set.has(id)) return true;
+    set.add(id);
+    return false;
+  }
+
+  async function appendResult(url, content) {
+    const filename = sanitizeFilename(url);
+    if (!state.producedSet.has(filename)) {
+      state.producedSet.add(filename);
+      state.producedFiles.push(filename);
+    }
+    if (state.dirHandle) {
+      let w = state.writers.get(filename);
+      if (!w) {
+        const fh = await state.dirHandle.getFileHandle(filename, { create: true });
+        w = await fh.createWritable();
+        state.writers.set(filename, w);
+      }
+      await w.write(content + "\n");
+    } else {
+      let buf = state.buffers.get(filename);
+      if (!buf) { buf = []; state.buffers.set(filename, buf); }
+      buf.push(content);
+    }
+  }
+
+  async function writeOutputFile(filename, text) {
+    if (state.dirHandle) {
+      const fh = await state.dirHandle.getFileHandle(filename, { create: true });
+      const w = await fh.createWritable();
+      await w.write(text);
+      await w.close();
+    }
+  }
+
+  /* ===================================================================
+     PROCESS A SINGLE FILE
+     =================================================================== */
+  async function processFile(fileObj, fileIndex, totalFiles, urls) {
+    const fileName = fileObj.name;
+    let matches = 0;
+    let text = "";
+    try { text = await fileObj.text(); }
+    catch (e) {
+      log("    ❌ Error reading " + fileName + ": " + e.message, "err");
+      return 0;
+    }
+    const lines = text.split(/\r?\n/);
+    const totalLines = lines.length;
+    const barLen = 30;
+    let lastRender = 0;
+
+    for (let i = 0; i < totalLines; i++) {
+      const stripped = lines[i].trim();
+      if (stripped) {
+        for (let k = 0; k < urls.length; k++) {
+          const kw = urls[k];
+          if (stripped.indexOf(kw) !== -1) {
+            if (!isDuplicate(kw, fileName, i + 1, stripped)) {
+              await appendResult(kw, stripped);
+              matches++;
+              state.totalMatches++;
+              logHTML(
+                "    🎯 Hit! [" + fileIndex + "/" + totalFiles + "] " +
+                '<span class="fname">' + esc(fileName.slice(0, 28)) + "</span> → " +
+                '<span class="kw">' + esc(kw.slice(0, 55)) + "</span> " +
+                '<span class="muted">(line ' + (i + 1) + ")</span>",
+                "hit"
+              );
+            }
+            break;
+          }
+        }
+      }
+      const now = performance.now();
+      if (now - lastRender > 70 || i === totalLines - 1) {
+        lastRender = now;
+        if (totalLines > 0) {
+          const done = i + 1;
+          const pct = (done / totalLines) * 100;
+          const filled = Math.floor((barLen * done) / totalLines);
+          const bar = "█".repeat(filled) + "░".repeat(barLen - filled);
+          setStatus(
+            "[" + fileIndex + "/" + totalFiles + "] " +
+            fileName.slice(0, 22).padEnd(22) +
+            " [" + bar + "] " + pct.toFixed(1).padStart(5) + "% " +
+            "(" + fmtNum(done) + "/" + fmtNum(totalLines) + ")"
+          );
+        }
+        await nextTick();
+      }
+    }
+    if (totalLines > 0) {
+      log(
+        "    ✅ [" + fileIndex + "/" + totalFiles + "] " +
+        fileName.slice(0, 28).padEnd(28) +
+        " · " + fmtNum(totalLines) + " lines · " + matches + " match" +
+        (matches === 1 ? "" : "es"), "ok"
+      );
+    } else {
+      log("    ✅ [" + fileIndex + "/" + totalFiles + "] " + fileName + " · empty file", "ok");
+    }
+    return matches;
+  }
+
+  /* ===================================================================
+     SUMMARY
+     =================================================================== */
+  function buildSummaryText(elapsed) {
+    const out = [];
+    out.push("# URL LINE EXTRACTION - COMPLETE SUMMARY");
+    out.push("# Generated: " + new Date().toLocaleString());
+    out.push("# Total processing time: " + elapsed.toFixed(2) + " seconds");
+    out.push("# " + "=".repeat(70));
+    out.push("");
+    out.push("## RESULTS BY URL");
+    out.push("");
+    const sorted = [...state.matchCounts.entries()].sort((a, b) => b[1] - a[1]);
+    for (const [url, count] of sorted) {
+      out.push("• " + url);
+      out.push("  └─ " + count + " unique hit(s) → " + sanitizeFilename(url));
+      out.push("");
+    }
+    out.push("");
+    out.push("## TOTAL STATISTICS");
+    out.push("• Total URLs with hits: " + state.matchCounts.size);
+    let total = 0;
+    for (const c of state.matchCounts.values()) total += c;
+    out.push("• Total unique hits: " + total);
+    return out.join("\n");
+  }
+  async function createSummary(elapsed) {
+    const text = buildSummaryText(elapsed);
+    state.summaryText = text;
+    if (state.dirHandle) {
+      try {
+        await writeOutputFile("_SUMMARY_.txt", text);
+        log("   📊 Summary written: _SUMMARY_.txt", "ok");
+      } catch (e) {
+        log("   ⚠️  Could not write summary: " + e.message, "warn");
+      }
+    } else {
+      log("   📊 Summary prepared: _SUMMARY_.txt", "ok");
+    }
+  }
+
+  /* ===================================================================
+     RESULTS RENDERING
+     =================================================================== */
+  function countForFile(filename) {
+    for (const [url, count] of state.matchCounts.entries()) {
+      if (sanitizeFilename(url) === filename) return count;
+    }
+    return 0;
+  }
+  function renderResults() {
+    const names = state.producedFiles.slice();
+    resultsCount.textContent = names.length ? names.length + " file(s)" : "";
+    resultsBody.innerHTML = "";
+    if (!names.length) {
+      resultsBody.className = "results-empty";
+      resultsBody.textContent = "No matches produced.";
+      return;
+    }
+    resultsBody.className = "";
+    const banner = document.createElement("div");
+    banner.className = "result-banner";
+    banner.innerHTML = '<span class="ico">✓</span><span>' +
+      names.length + " hit file(s)" +
+      (state.dirHandle ? " written to ./" + esc(state.dirHandle.name) + "/" : " ready to download") +
+      "</span>";
+    resultsBody.appendChild(banner);
+
+    if (!state.dirHandle) {
+      const dlAll = document.createElement("button");
+      dlAll.className = "btn primary";
+      dlAll.type = "button";
+      dlAll.style.width = "100%";
+      dlAll.style.marginBottom = "10px";
+      dlAll.innerHTML = '<span class="ico">⬇</span> Download all files';
+      dlAll.addEventListener("click", downloadAll);
+      resultsBody.appendChild(dlAll);
+    }
+
+    const grid = document.createElement("div");
+    grid.className = "file-grid";
+    state.blobItems = [];
+
+    names.forEach((n) => {
+      const count = countForFile(n);
+      if (state.dirHandle) {
+        const item = document.createElement("div");
+        item.className = "file-item";
+        item.innerHTML = '<span class="badge">' + count + "</span>" +
+          '<span class="name">' + esc(n) + "</span>";
+        grid.appendChild(item);
+      } else {
+        const buf = state.buffers.get(n) || [];
+        const text = buf.join("\n") + (buf.length ? "\n" : "");
+        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        state.blobItems.push({ name: n, url });
+        const a = document.createElement("a");
+        a.className = "file-item";
+        a.href = url;
+        a.download = n;
+        a.innerHTML = '<span class="badge">' + count + "</span>" +
+          '<span class="name">' + esc(n) + "</span>" +
+          '<span class="dl">⬇</span>';
+        grid.appendChild(a);
+      }
+    });
+
+    // summary file
+    if (state.dirHandle) {
+      const item = document.createElement("div");
+      item.className = "file-item";
+      item.innerHTML = '<span class="badge">—</span><span class="name">_SUMMARY_.txt</span>';
+      grid.appendChild(item);
+    } else {
+      const blob = new Blob([state.summaryText], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      state.blobItems.push({ name: "_SUMMARY_.txt", url });
+      const a = document.createElement("a");
+      a.className = "file-item";
+      a.href = url;
+      a.download = "_SUMMARY_.txt";
+      a.innerHTML = '<span class="badge">—</span>' +
+        '<span class="name">_SUMMARY_.txt</span>' +
+        '<span class="dl">⬇</span>';
+      grid.appendChild(a);
+    }
+    resultsBody.appendChild(grid);
+  }
+
+  async function downloadAll() {
+    for (const it of state.blobItems) {
+      const a = document.createElement("a");
+      a.href = it.url;
+      a.download = it.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      await new Promise((r) => setTimeout(r, 220));
+    }
+  }
+
+  /* ===================================================================
+     PRINT HELPERS
+     =================================================================== */
+  function printBanner() {
+    log("=".repeat(60), "banner");
+    log("  ⚡ URL EXTRACTOR v2.0", "banner");
+    log("  real-time · deduplicated · per-URL output", "dim");
+    log("=".repeat(60), "banner");
+  }
+  function printSummary(totalMatches, fileCount, urlCount, elapsed) {
+    log("");
+    log("=".repeat(60), "ok");
+    log("📊 PROCESSING SUMMARY", "ok");
+    log("=".repeat(60), "ok");
+    log("");
+    log("   • URLs / keywords searched: " + urlCount);
+    log("   • Files processed: " + fileCount);
+    log("   • URLs with matches: " + state.matchCounts.size);
+    log("   • Total unique matches: " + fmtNum(totalMatches));
+    log("   • Processing time: " + elapsed.toFixed(2) + " s");
+    if (totalMatches > 0 && elapsed > 0) {
+      log("   • Avg speed: " + (totalMatches / elapsed).toFixed(2) + " matches/sec");
+    }
+    if (state.matchCounts.size) {
+      log("");
+      log("🔗 Top URLs by hits:", "ok");
+      const sorted = [...state.matchCounts.entries()]
+        .sort((a, b) => b[1] - a[1]).slice(0, 8);
+      for (const [url, count] of sorted) {
+        log("   • " + url.slice(0, 65));
+        log("     └─ " + count + " hit(s) → " + sanitizeFilename(url));
+      }
+      if (state.matchCounts.size > 8) {
+        log("   • ... and " + (state.matchCounts.size - 8) + " more URLs");
+      }
+    }
+    log("");
+    log("💾 " + (state.dirHandle
+      ? "Written to ./" + state.dirHandle.name + "/"
+      : "Results ready for download (see Results card)"), "ok");
+    log("=".repeat(60) + "\n", "ok");
+  }
+
+  /* ===================================================================
+     RESET
+     =================================================================== */
+  function resetRunState() {
+    state.processedLines = new Map();
+    state.matchCounts = new Map();
+    state.buffers = new Map();
+    state.writers = new Map();
+    state.producedSet = new Set();
+    state.producedFiles = [];
+    state.summaryText = "";
+    state.blobItems = [];
+    state.totalMatches = 0;
+  }
+
+  /* ===================================================================
+     MAIN RUN
+     =================================================================== */
+  async function run() {
+    if (state.running) return;
+
+    termEl.innerHTML = "";
+    resetRunState();
+    resultsBody.className = "results-empty";
+    resultsBody.textContent = "Processing…";
+    resultsCount.textContent = "";
+
+    printBanner();
+
+    /* ---- STEP 1: keywords ---- */
+    log("");
+    log("🔍 [STEP 1] Collecting keywords…", "step");
+    const urls = getCombinedKeywords();
+    if (!urls.length) {
+      log("   ❌ No keywords provided.", "err");
+      log("   → Toggle a preset category or type custom keywords.", "dim");
+      setPill("idle");
+      toast("No keywords — add some first", "err");
+      resultsBody.textContent = "No keywords provided.";
+      return;
+    }
+    log("   ✓ " + urls.length + " unique keyword(s)", "ok");
+    urls.slice(0, 4).forEach((u) => log("     • " + u));
+    if (urls.length > 4) log("     • ... and " + (urls.length - 4) + " more");
+
+    /* ---- STEP 2: data files ---- */
+    log("");
+    log("📂 [STEP 2] Scanning data files…", "step");
+    const files = state.dataFiles;
+    if (!files.length) {
+      log("   ❌ No .txt data files loaded.", "err");
+      log("   → Tap Change above to go back and select files.", "dim");
+      setPill("idle");
+      toast("No data files loaded", "err");
+      resultsBody.textContent = "No data files loaded.";
+      return;
+    }
+    const totalBytes = files.reduce((s, f) => s + f.size, 0);
+    log("   ✓ " + files.length + " file(s) · " + humanSize(totalBytes), "ok");
+    files.slice(0, 4).forEach((f) =>
+      log("     • " + f.name + " (" + humanSize(f.size) + ")"));
+    if (files.length > 4) log("     • ... and " + (files.length - 4) + " more");
+
+    /* ---- STEP 3: process ---- */
+    state.running = true;
+    runBtn.disabled = true;
+    setPill("running", true);
+    state.startTime = performance.now();
+
+    log("");
+    log("⚙️  [STEP 3] Processing…", "step");
+    log("   " + "-".repeat(56), "dim");
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        log("");
+        log("   📄 [" + (i + 1) + "/" + files.length + "] " + files[i].name, "step");
+        const found = await processFile(files[i], i + 1, files.length, urls);
+        if (found > 0) {
+          log("   ✅ " + found + " new unique hit(s) in this file", "ok");
+        } else {
+          log("   ℹ️  No new hits in this file", "dim");
+        }
+      }
+    } catch (e) {
+      log("   ❌ Unexpected error: " + e.message, "err");
+      console.error(e);
+    }
+
+    /* ---- recount ---- */
+    state.matchCounts = new Map();
+    for (const [url, set] of state.processedLines.entries()) {
+      state.matchCounts.set(url, set.size);
+    }
+
+    /* ---- STEP 4: summary ---- */
+    log("");
+    log("   " + "-".repeat(56), "dim");
+    log("");
+    log("📝 [STEP 4] Writing summary…", "step");
+    const elapsed = (performance.now() - state.startTime) / 1000;
+    await createSummary(elapsed);
+
+    /* ---- close writers ---- */
+    for (const [, w] of state.writers) {
+      try { await w.close(); } catch (e) {}
+    }
+    state.writers.clear();
+
+    /* ---- final ---- */
+    printSummary(state.totalMatches, files.length, urls.length, elapsed);
+    renderResults();
+
+    setStatus("done · " + fmtNum(state.totalMatches) + " hits · " +
+      elapsed.toFixed(2) + "s · " + files.length + " file(s)");
+    setPill("done", false);
+    toast("Done · " + state.totalMatches + " unique hit(s)", "ok");
+
+    state.running = false;
+    runBtn.disabled = false;
+  }
+
+  /* ===================================================================
+     EVENTS
+     =================================================================== */
+  runBtn.addEventListener("click", run);
+  clearBtn.addEventListener("click", () => {
+    if (state.running) return;
+    termEl.innerHTML = "";
+    setStatus("idle · console cleared");
+  });
+
+  /* ===================================================================
+     INIT
+     =================================================================== */
+  buildChips();
+  updateKwHint();
+  updateFilesBanner();
+
+  // If browser fully restores the page with files (rare), skip splash
+  // — otherwise always start on splash.
+  if (document.body.classList.contains("app-mode")) {
+    splashEl.style.display = "none";
+    splashEl.classList.add("gone");
+  }
+})();
+</script>
+</body>
+</html>
