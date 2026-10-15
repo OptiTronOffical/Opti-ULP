@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0b0f14" />
-<title>Opti ULP Extractor · v2.0</title>
+<title>OptiTron ULP Tool · v2.1</title>
 <style>
 /* =====================================================================
    TOKENS
@@ -199,9 +199,9 @@ body.app-mode .app{opacity:1;transform:translateY(0)}
 .brand{display:flex;align-items:center;gap:11px;flex:1;min-width:0}
 .logo{
   width:38px;height:38px;flex-shrink:0;border-radius:11px;
-  display:grid;place-items:center;font-size:19px;
+  display:grid;place-items:center;font-size:17px;font-weight:800;
   background:linear-gradient(135deg, #00e5a0, #00a874);
-  color:#04140d;
+  color:#04140d;letter-spacing:-.5px;
   box-shadow:0 4px 16px rgba(0,229,160,.35), inset 0 1px 0 rgba(255,255,255,.25);
 }
 .brand h1{margin:0;font-size:16px;font-weight:650;letter-spacing:-.2px;color:var(--text)}
@@ -292,7 +292,7 @@ body.app-mode .app{opacity:1;transform:translateY(0)}
 }
 .btn.small{padding:7px 11px;font-size:12px;border-radius:9px}
 
-/* ---------- keyword chips ---------- */
+/* ---------- pattern chips ---------- */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{
   display:inline-flex;align-items:center;gap:7px;
@@ -427,10 +427,9 @@ textarea::placeholder{color:var(--muted-2)}
 .file-grid{display:grid;grid-template-columns:1fr;gap:7px;margin-top:4px}
 .file-item{
   display:flex;align-items:center;gap:10px;
-  padding:10px 12px;border-radius:var(--radius-xs);
+  padding:9px 10px 9px 12px;border-radius:var(--radius-xs);
   background:var(--card-2);border:1px solid var(--border);
   font-size:12.5px;overflow:hidden;transition:.12s;
-  text-decoration:none;color:var(--text);
 }
 .file-item:hover{background:var(--card-3);border-color:var(--border-hi)}
 .file-item .badge{
@@ -443,9 +442,19 @@ textarea::placeholder{color:var(--muted-2)}
 .file-item .name{
   flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font-family:var(--mono);font-size:11.5px;color:var(--muted);
+  min-width:0;
 }
 .file-item:hover .name{color:var(--text)}
-.file-item .dl{flex-shrink:0;font-size:11px;color:var(--accent);opacity:.85}
+.file-item .save-btn{
+  flex-shrink:0;appearance:none;font:inherit;font-size:11px;font-weight:700;
+  color:var(--accent);background:var(--accent-soft);
+  border:1px solid rgba(0,229,160,.28);
+  padding:6px 12px;border-radius:8px;cursor:pointer;
+  transition:background .15s,transform .08s,border-color .15s;
+  letter-spacing:.3px;user-select:none;
+}
+.file-item .save-btn:hover{background:rgba(0,229,160,.20);border-color:var(--accent-dim)}
+.file-item .save-btn:active{transform:scale(.94)}
 
 /* ---------- toast ---------- */
 .toast{
@@ -481,8 +490,8 @@ textarea::placeholder{color:var(--muted-2)}
         <span class="splash-logo-ring"></span>
         ⚡
       </div>
-      <h1>Opti ULP Extractor</h1>
-      <p>Real-time line matching across .txt files</p>
+      <h1>OptiTron ULP Tool</h1>
+      <p>URL path pattern extraction across .txt files</p>
     </div>
 
     <div class="dropzone" id="dropzone" role="button" tabindex="0"
@@ -509,10 +518,10 @@ textarea::placeholder{color:var(--muted-2)}
 
   <header class="app-bar">
     <div class="brand">
-      <div class="logo">⚡</div>
+      <div class="logo">OT</div>
       <div>
-        <h1>Opti ULP Extractor</h1>
-        <p>Real-time line matching · v2.0</p>
+        <h1>OptiTron ULP Tool</h1>
+        <p>URL pattern extraction · v2.1</p>
       </div>
     </div>
     <div class="status-pill" id="statusPill">idle</div>
@@ -530,7 +539,7 @@ textarea::placeholder{color:var(--muted-2)}
   <section class="card">
     <div class="card-head">
       <div class="icon">⚡</div>
-      <h2>Quick Categories</h2>
+      <h2>URL Pattern Presets</h2>
       <span class="sub" id="catCount">0 selected</span>
     </div>
     <div class="chips" id="chips"></div>
@@ -539,7 +548,7 @@ textarea::placeholder{color:var(--muted-2)}
   <section class="card">
     <div class="card-head">
       <div class="icon">✏️</div>
-      <h2>Custom Keywords</h2>
+      <h2>Custom URL Patterns</h2>
       <button class="btn small ghost" type="button" id="importKw">
         <span class="ico">⬆</span> Import .txt
       </button>
@@ -547,10 +556,10 @@ textarea::placeholder{color:var(--muted-2)}
     <div class="field">
       <div class="ta-wrap">
         <textarea id="customKw" spellcheck="false" autocapitalize="off" autocomplete="off"
-          placeholder="One keyword per line — longer terms work best, e.g.&#10;admin control panel&#10;card balance&#10;private key&#10;api key&#10;login credentials"></textarea>
+          placeholder="One URL path pattern per line — e.g.&#10;admin/panel&#10;admin_panel&#10;wp-login.php&#10;config.php&#10;.env&#10;/backup/&#10;api/v1"></textarea>
       </div>
       <div class="ta-foot">
-        <span class="hint" id="kwHint">Enter keywords above, or toggle a category</span>
+        <span class="hint" id="kwHint">Enter URL patterns above, or toggle a preset</span>
       </div>
     </div>
     <input type="file" id="kwFile" accept=".txt,text/plain" hidden />
@@ -559,14 +568,15 @@ textarea::placeholder{color:var(--muted-2)}
   <section class="card">
     <div class="card-head">
       <div class="icon">💾</div>
-      <h2>Output</h2>
+      <h2>Output Folder</h2>
+      <span class="sub">optional</span>
     </div>
     <button class="btn ghost" type="button" id="pickOutput" style="width:100%;justify-content:flex-start">
       <span class="ico">📁</span>
       <span id="outLabel">Choose output folder</span>
     </button>
     <div class="file-meta" id="outMeta" style="margin-top:8px;font-size:11.5px;color:var(--muted)">
-      Falls back to browser downloads if unsupported
+      Every hit file is always saveable individually below
     </div>
   </section>
 
@@ -604,127 +614,128 @@ textarea::placeholder{color:var(--muted-2)}
   "use strict";
 
   /* ===================================================================
-     EXPANDED KEYWORD CATEGORIES
-     Longer, more descriptive phrases for sensitive-data discovery
+     URL PATH PATTERN PRESETS
+     Each entry is an actual URL path / path fragment, matched as a
+     plain substring against every line of every .txt file.
      =================================================================== */
-  const CATEGORIES = [
+  const URL_PATTERNS = [
     {
       id: "admin_panels", label: "Admin Panels", icon: "🛡️",
       keywords: [
-        "admin panel", "admin dashboard", "admin control panel",
-        "admin login", "administrator panel", "administrator login",
-        "admin area", "admin console", "backend admin",
-        "site administration", "admin portal", "admin access",
-        "cpanel login", "whm login", "plesk panel", "webadmin panel"
+        "admin/panel", "admin_panel", "adminpanel", "admin/login",
+        "admin/dashboard", "admin/index", "admin/home", "admin/area",
+        "admin_area", "admin_area.php", "adminpanel.php", "admin/login.php",
+        "admin/dashboard.php", "wp-admin", "wp-login.php",
+        "administrator", "admincp", "admincp.php", "/admin/"
       ]
     },
     {
       id: "login_panels", label: "Login Panels", icon: "🔑",
       keywords: [
-        "login panel", "login page", "sign in page", "user login",
-        "client login", "member login", "staff login", "employee login",
-        "secure login", "account login", "portal login", "webmail login",
-        "login credentials", "authentication required",
-        "please sign in", "enter your password"
+        "login/", "login.php", "login.html", "login.aspx", "login.jsp",
+        "signin", "sign-in", "sign_in", "user/login", "users/login",
+        "account/login", "member/login", "members/login", "client/login",
+        "staff/login", "auth/login", "secure/login", "portal/login",
+        "webmail/login", "session/login"
       ]
     },
     {
       id: "dashboards", label: "Dashboards", icon: "📊",
       keywords: [
-        "dashboard", "user dashboard", "admin dashboard",
-        "analytics dashboard", "management console", "reporting dashboard",
-        "monitoring dashboard", "control panel", "stats panel",
-        "overview panel", "admin overview", "system status"
+        "dashboard", "dashboard.php", "dashboard.html", "user/dashboard",
+        "admin/dashboard", "cp/dashboard", "panel/dashboard",
+        "console/dashboard", "analytics/dashboard", "reports/dashboard",
+        "management/console", "control/panel", "controlpanel",
+        "cpanel/dashboard", "overview/panel"
       ]
     },
     {
-      id: "api_keys", label: "API Keys", icon: "🔌",
+      id: "api_endpoints", label: "API Endpoints", icon: "🔌",
       keywords: [
-        "api key", "api_key", "apikey", "api secret", "api token",
-        "client secret", "client id", "consumer key", "consumer secret",
-        "access token", "bearer token", "auth token", "refresh token",
-        "jwt token", "oauth token", "personal access token",
-        "secret key", "app secret", "private token"
+        "api/key", "api_key", "apikey", "api/keys", "api/token",
+        "api/secret", "api/auth", "api/v1", "api/v2", "api/v3",
+        "rest/api", "graphql", "graphiql", "api/admin", "api/user",
+        "api/login", "api/config", "api/internal", "api/private",
+        "swagger.json", "openapi.json", "api-docs"
       ]
     },
     {
-      id: "crypto_keys", label: "Crypto Keys", icon: "₿",
+      id: "crypto_keys", label: "Crypto / Keys", icon: "₿",
       keywords: [
-        "private key", "public key", "seed phrase", "mnemonic phrase",
-        "recovery phrase", "wallet address", "bitcoin wallet",
-        "ethereum wallet", "crypto wallet", "cold wallet", "hot wallet",
-        "wallet.dat", "keystore file", "metamask seed", "trust wallet",
-        "ledger seed", "hardware wallet", "begin rsa private key",
-        "begin openssh private key"
+        "wallet.dat", "wallet.json", "keystore", "keystore.json",
+        "private_key", "privatekey", "private-key", "public_key",
+        "seed.txt", "seedphrase", "mnemonic", "id_rsa", "id_dsa",
+        "id_ecdsa", "id_ed25519", "authorized_keys", "known_hosts",
+        ".pem", ".pfx", ".p12", "privkey"
       ]
     },
     {
-      id: "card_balances", label: "Card Balances", icon: "💳",
+      id: "cards_billing", label: "Cards / Billing", icon: "💳",
       keywords: [
-        "card balance", "account balance", "available balance",
-        "current balance", "ledger balance", "credit card number",
-        "debit card number", "card holder name", "card number",
-        "expiry date", "cvv code", "billing address",
-        "iban number", "swift code", "routing number", "account number"
+        "card/balance", "card_balance", "billing/", "billing.php",
+        "billing/invoice", "invoice/", "invoices/", "credit-card",
+        "creditcard", "card/number", "cardholder", "payment/card",
+        "account/balance", "balance.json", "statement.pdf"
       ]
     },
     {
       id: "cloud_ssh", label: "Cloud & SSH", icon: "☁️",
       keywords: [
-        "aws access key", "aws secret key", "aws access key id",
-        "s3 bucket", "aws account id", "azure key", "azure connection",
-        "gcp service account", "google api key", "ssh private key",
-        "ssh-rsa", "ssh-ed25519", "ssh-rsa aaa", "id_rsa", "id_ed25519",
-        "authorized_keys", "known_hosts", "cloud credentials", "iam user"
+        "aws/credentials", "aws/access_key", "aws_access_key",
+        "aws-secret", "aws/config", "s3/bucket", "s3.amazonaws",
+        "azure/credentials", "gcp/service-account", "gcp/key",
+        "ssh/", ".ssh/", "ssh_config", "cloud/credentials",
+        "iam/user", "service-account.json"
       ]
     },
     {
       id: "databases", label: "Databases", icon: "🗄️",
       keywords: [
-        "database password", "db_password", "db_pass", "mysql password",
-        "postgres password", "mssql password", "mongodb uri",
-        "connection string", "jdbc:", "mongodb://", "postgresql://",
-        "mysql://", "redis://", "database backup", "sql dump", "phpmyadmin"
+        "db.php", "db_config", "db_config.php", "database.php",
+        "database.sql", "db.sql", "dump.sql", "backup.sql",
+        "mysql/", "phpmyadmin", "pma/", "adminer.php", "adminer/",
+        "mongodb/", "postgres/", "redis/", "sqlite.db", "data.sqlite",
+        "connection-string"
       ]
     },
     {
       id: "config_secrets", label: "Config & Secrets", icon: "⚙️",
       keywords: [
-        "config file", "configuration file", "environment variables",
-        "environment file", ".env file", "secrets.yml", "secrets.yaml",
-        "credentials.json", "settings.py", "wp-config.php",
-        "web.config", "appsettings.json", "docker-compose.yml",
-        ".htpasswd", "id_rsa.pub", "private_key.pem"
+        "config.php", "config.json", "config.yml", "config.yaml",
+        "config.xml", "config.ini", "config.bak", "configuration.php",
+        "settings.php", "settings.json", "settings.py", ".env",
+        ".env.bak", ".env.local", ".env.production", "wp-config.php",
+        "web.config", "appsettings.json", "credentials.json",
+        "secrets.yml", "secrets.json", ".htpasswd", ".htaccess"
       ]
     },
     {
       id: "payment", label: "Payment Gateways", icon: "💰",
       keywords: [
-        "stripe secret key", "stripe api key", "stripe live key",
-        "paypal client id", "paypal client secret", "braintree key",
-        "square access token", "payment gateway", "merchant id",
-        "transaction id", "payment credentials", "checkout api",
-        "billing credentials", "payout account"
+        "checkout/", "checkout.php", "payment/", "payment.php",
+        "payments/", "gateway/", "stripe/", "stripe/key",
+        "paypal/", "braintree/", "square/", "merchant/",
+        "transaction/", "payout/", "billing/gateway", "checkout/api"
       ]
     },
     {
       id: "email_smtp", label: "Email & SMTP", icon: "📧",
       keywords: [
-        "smtp password", "smtp username", "smtp host", "smtp port",
-        "mail password", "email password", "imap password",
-        "pop3 password", "sendgrid api", "mailgun api",
-        "email credentials", "email account", "mail credentials",
-        "outlook password", "gmail password"
+        "smtp/", "smtp.php", "smtp_config", "smtp-config",
+        "mail.php", "mailer/", "webmail/", "roundcube/",
+        "imap/", "pop3/", "sendgrid/", "mailgun/",
+        "mail/credentials", "email/config", "mailer-config.php",
+        "phpmailer/", "webmail/login"
       ]
     },
     {
-      id: "dev_test", label: "Dev / Test", icon: "🧪",
+      id: "dev_test", label: "Dev / Test / Hidden", icon: "🧪",
       keywords: [
-        "localhost", "127.0.0.1", "staging environment",
-        "development server", "test credentials", "debug mode",
-        "sandbox environment", "internal api", "dev server",
-        "preprod", "uat environment", "test account",
-        "default password", "default credentials"
+        "/test/", "/dev/", "/staging/", "/preprod/", "/uat/",
+        "/sandbox/", "/debug/", "/internal/", "/private/",
+        "/hidden/", "/secret/", "/backup/", "/backups/",
+        "/old/", "/tmp/", "/temp/", "/cache/", "/.git/",
+        "/.svn/", "localhost/", "127.0.0.1/"
       ]
     }
   ];
@@ -835,25 +846,19 @@ textarea::placeholder{color:var(--muted-2)}
   }
 
   /* ===================================================================
-     URL → FILENAME
+     PATTERN → FILENAME
+     "admin/panel"          → "admin_panel-hits.txt"
+     "http://x.com/a/b"     → "x.com_a_b-hits.txt"
+     "/backup/"             → "backup-hits.txt"
      =================================================================== */
-  function parseUrlParts(url) {
-    try { const u = new URL(url); return { netloc: u.host, path: u.pathname }; }
-    catch (_) {}
-    let s = String(url);
-    const m = s.match(/^[a-zA-Z][a-zA-Z0-9+.\-]*:\/\//);
-    if (m) s = s.slice(m[0].length);
-    s = s.split("#")[0].split("?")[0];
-    const i = s.indexOf("/");
-    if (i === -1) return { netloc: s, path: "" };
-    return { netloc: s.slice(0, i), path: s.slice(i + 1) };
-  }
-  function sanitizeFilename(url) {
-    const { netloc, path } = parseUrlParts(url);
-    const domain = netloc.replace(/^www\./, "");
-    const clean = path.replace(/^\/+|\/+$/g, "");
-    let name = clean ? domain + "_" + clean : domain;
-    name = name.replace(/[<>:"/\\|?*]/g, "_");
+  function sanitizeFilename(pattern) {
+    let name = String(pattern).trim();
+    name = name.replace(/^[a-zA-Z][a-zA-Z0-9+.\-]*:\/\//, ""); // strip scheme
+    name = name.split("#")[0].split("?")[0];                   // strip query/hash
+    name = name.replace(/^www\./, "");                        // strip www.
+    name = name.replace(/[<>:"/\\|?*\s]+/g, "_");             // illegal → _
+    name = name.replace(/_+/g, "_");                          // collapse
+    name = name.replace(/^_+|_+$/g, "");                      // trim
     if (name.length > 200) name = name.slice(0, 200);
     if (!name) name = "unknown";
     return name + "-hits.txt";
@@ -991,9 +996,9 @@ textarea::placeholder{color:var(--muted-2)}
     setTimeout(() => { splashEl.style.display = "none"; }, 420);
 
     termEl.innerHTML = "";
-    log("ulp://extractor v2.0 — ready.", "banner");
+    log("optitron://ulp-tool v2.1 — ready.", "banner");
     log("Loaded " + state.dataFiles.length + " file(s).", "dim");
-    log("Toggle a preset category or paste custom keywords,", "dim");
+    log("Toggle a URL pattern preset or paste custom patterns,", "dim");
     log("then tap RUN EXTRACTION.", "dim");
     setStatus("idle · waiting for input…");
     setPill("idle");
@@ -1029,11 +1034,11 @@ textarea::placeholder{color:var(--muted-2)}
   }
 
   /* ===================================================================
-     KEYWORD CHIPS
+     PATTERN CHIPS
      =================================================================== */
   function buildChips() {
     chipsEl.innerHTML = "";
-    CATEGORIES.forEach((cat) => {
+    URL_PATTERNS.forEach((cat) => {
       const el = document.createElement("div");
       el.className = "chip" + (state.checked.has(cat.id) ? " on" : "");
       el.dataset.id = cat.id;
@@ -1059,32 +1064,32 @@ textarea::placeholder{color:var(--muted-2)}
     const n = state.checked.size;
     catCount.textContent = n === 0 ? "0 selected" : n + " selected";
   }
-  function getCombinedKeywords() {
+  function getCombinedPatterns() {
     const set = new Set();
     for (const id of state.checked) {
-      const cat = CATEGORIES.find((c) => c.id === id);
+      const cat = URL_PATTERNS.find((c) => c.id === id);
       if (cat) cat.keywords.forEach((k) => set.add(k));
     }
     state.customLines.forEach((l) => set.add(l));
     return [...set];
   }
   function updateKwHint() {
-    const combined = getCombinedKeywords();
+    const combined = getCombinedPatterns();
     let autoCount = 0;
     for (const id of state.checked) {
-      const cat = CATEGORIES.find((c) => c.id === id);
+      const cat = URL_PATTERNS.find((c) => c.id === id);
       if (cat) autoCount += cat.keywords.length;
     }
     const customCount = state.customLines.length;
     if (combined.length === 0) {
-      kwHint.innerHTML = "Enter keywords above, or toggle a category";
+      kwHint.innerHTML = "Enter URL patterns above, or toggle a preset";
       return;
     }
     const parts = [];
     if (autoCount) parts.push("<b>" + autoCount + "</b> preset");
     if (customCount) parts.push("<b>" + customCount + "</b> custom");
     kwHint.innerHTML =
-      parts.join(" · ") + "  →  <b>" + combined.length + "</b> unique keyword" +
+      parts.join(" · ") + "  →  <b>" + combined.length + "</b> unique pattern" +
       (combined.length === 1 ? "" : "s");
   }
 
@@ -1117,7 +1122,7 @@ textarea::placeholder{color:var(--muted-2)}
   if (!supportsFS) {
     pickOutput.disabled = true;
     outLabel.textContent = "Output folder unavailable";
-    outMeta.textContent = "Browser has no File System Access API — will use downloads";
+    outMeta.textContent = "Browser has no File System Access API — save files individually below";
   }
   pickOutput.addEventListener("click", async () => {
     if (!supportsFS) return;
@@ -1125,7 +1130,7 @@ textarea::placeholder{color:var(--muted-2)}
       const handle = await window.showDirectoryPicker({ mode: "readwrite" });
       state.dirHandle = handle;
       outLabel.textContent = handle.name;
-      outMeta.textContent = "Results will be written to ./" + handle.name + "/";
+      outMeta.textContent = "Also writing to ./" + handle.name + "/ · save buttons still work";
       outMeta.style.color = "var(--accent)";
     } catch (e) {}
   });
@@ -1133,21 +1138,27 @@ textarea::placeholder{color:var(--muted-2)}
   /* ===================================================================
      DEDUPE + APPEND
      =================================================================== */
-  function isDuplicate(url, fileName, lineNum, content) {
-    let set = state.processedLines.get(url);
-    if (!set) { set = new Set(); state.processedLines.set(url, set); }
-    const id = url + "|" + fileName + "|" + lineNum + "|" + content;
+  function isDuplicate(pattern, fileName, lineNum, content) {
+    let set = state.processedLines.get(pattern);
+    if (!set) { set = new Set(); state.processedLines.set(pattern, set); }
+    const id = pattern + "|" + fileName + "|" + lineNum + "|" + content;
     if (set.has(id)) return true;
     set.add(id);
     return false;
   }
 
-  async function appendResult(url, content) {
-    const filename = sanitizeFilename(url);
+  async function appendResult(pattern, content) {
+    const filename = sanitizeFilename(pattern);
     if (!state.producedSet.has(filename)) {
       state.producedSet.add(filename);
       state.producedFiles.push(filename);
     }
+    /* Always keep an in-memory buffer so every file is individually saveable */
+    let buf = state.buffers.get(filename);
+    if (!buf) { buf = []; state.buffers.set(filename, buf); }
+    buf.push(content);
+
+    /* Additionally stream to disk when a folder was chosen */
     if (state.dirHandle) {
       let w = state.writers.get(filename);
       if (!w) {
@@ -1156,10 +1167,6 @@ textarea::placeholder{color:var(--muted-2)}
         state.writers.set(filename, w);
       }
       await w.write(content + "\n");
-    } else {
-      let buf = state.buffers.get(filename);
-      if (!buf) { buf = []; state.buffers.set(filename, buf); }
-      buf.push(content);
     }
   }
 
@@ -1175,7 +1182,7 @@ textarea::placeholder{color:var(--muted-2)}
   /* ===================================================================
      PROCESS A SINGLE FILE
      =================================================================== */
-  async function processFile(fileObj, fileIndex, totalFiles, urls) {
+  async function processFile(fileObj, fileIndex, totalFiles, patterns) {
     const fileName = fileObj.name;
     let matches = 0;
     let text = "";
@@ -1192,17 +1199,17 @@ textarea::placeholder{color:var(--muted-2)}
     for (let i = 0; i < totalLines; i++) {
       const stripped = lines[i].trim();
       if (stripped) {
-        for (let k = 0; k < urls.length; k++) {
-          const kw = urls[k];
-          if (stripped.indexOf(kw) !== -1) {
-            if (!isDuplicate(kw, fileName, i + 1, stripped)) {
-              await appendResult(kw, stripped);
+        for (let k = 0; k < patterns.length; k++) {
+          const pat = patterns[k];
+          if (stripped.indexOf(pat) !== -1) {
+            if (!isDuplicate(pat, fileName, i + 1, stripped)) {
+              await appendResult(pat, stripped);
               matches++;
               state.totalMatches++;
               logHTML(
                 "    🎯 Hit! [" + fileIndex + "/" + totalFiles + "] " +
                 '<span class="fname">' + esc(fileName.slice(0, 28)) + "</span> → " +
-                '<span class="kw">' + esc(kw.slice(0, 55)) + "</span> " +
+                '<span class="kw">' + esc(pat.slice(0, 55)) + "</span> " +
                 '<span class="muted">(line ' + (i + 1) + ")</span>",
                 "hit"
               );
@@ -1247,22 +1254,22 @@ textarea::placeholder{color:var(--muted-2)}
      =================================================================== */
   function buildSummaryText(elapsed) {
     const out = [];
-    out.push("# URL LINE EXTRACTION - COMPLETE SUMMARY");
+    out.push("# OPTITRON ULP TOOL — EXTRACTION SUMMARY");
     out.push("# Generated: " + new Date().toLocaleString());
     out.push("# Total processing time: " + elapsed.toFixed(2) + " seconds");
     out.push("# " + "=".repeat(70));
     out.push("");
-    out.push("## RESULTS BY URL");
+    out.push("## RESULTS BY URL PATTERN");
     out.push("");
     const sorted = [...state.matchCounts.entries()].sort((a, b) => b[1] - a[1]);
-    for (const [url, count] of sorted) {
-      out.push("• " + url);
-      out.push("  └─ " + count + " unique hit(s) → " + sanitizeFilename(url));
+    for (const [pattern, count] of sorted) {
+      out.push("• " + pattern);
+      out.push("  └─ " + count + " unique hit(s) → " + sanitizeFilename(pattern));
       out.push("");
     }
     out.push("");
     out.push("## TOTAL STATISTICS");
-    out.push("• Total URLs with hits: " + state.matchCounts.size);
+    out.push("• Total patterns with hits: " + state.matchCounts.size);
     let total = 0;
     for (const c of state.matchCounts.values()) total += c;
     out.push("• Total unique hits: " + total);
@@ -1284,101 +1291,124 @@ textarea::placeholder{color:var(--muted-2)}
   }
 
   /* ===================================================================
-     RESULTS RENDERING
+     RESULTS RENDERING — one row per hit file, each saveable separately
      =================================================================== */
   function countForFile(filename) {
-    for (const [url, count] of state.matchCounts.entries()) {
-      if (sanitizeFilename(url) === filename) return count;
+    for (const [pattern, count] of state.matchCounts.entries()) {
+      if (sanitizeFilename(pattern) === filename) return count;
     }
     return 0;
   }
+
+  function revokeBlobs() {
+    state.blobItems.forEach((it) => {
+      try { URL.revokeObjectURL(it.url); } catch (_) {}
+    });
+    state.blobItems = [];
+  }
+
+  function saveBlobUrl(url, name) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function makeItem(badge, name, url, onSave) {
+    const item = document.createElement("div");
+    item.className = "file-item";
+
+    const b = document.createElement("span");
+    b.className = "badge";
+    b.textContent = badge;
+
+    const n = document.createElement("span");
+    n.className = "name";
+    n.textContent = name;
+    n.title = name;
+
+    const btn = document.createElement("button");
+    btn.className = "save-btn";
+    btn.type = "button";
+    btn.textContent = "Save";
+    btn.addEventListener("click", onSave);
+
+    item.appendChild(b);
+    item.appendChild(n);
+    item.appendChild(btn);
+    return item;
+  }
+
   function renderResults() {
     const names = state.producedFiles.slice();
     resultsCount.textContent = names.length ? names.length + " file(s)" : "";
     resultsBody.innerHTML = "";
+    revokeBlobs();
+
     if (!names.length) {
       resultsBody.className = "results-empty";
       resultsBody.textContent = "No matches produced.";
       return;
     }
     resultsBody.className = "";
+
     const banner = document.createElement("div");
     banner.className = "result-banner";
     banner.innerHTML = '<span class="ico">✓</span><span>' +
-      names.length + " hit file(s)" +
-      (state.dirHandle ? " written to ./" + esc(state.dirHandle.name) + "/" : " ready to download") +
+      names.length + " hit file(s) — each saveable separately" +
+      (state.dirHandle ? " · also written to ./" + esc(state.dirHandle.name) + "/" : "") +
       "</span>";
     resultsBody.appendChild(banner);
 
-    if (!state.dirHandle) {
-      const dlAll = document.createElement("button");
-      dlAll.className = "btn primary";
-      dlAll.type = "button";
-      dlAll.style.width = "100%";
-      dlAll.style.marginBottom = "10px";
-      dlAll.innerHTML = '<span class="ico">⬇</span> Download all files';
-      dlAll.addEventListener("click", downloadAll);
-      resultsBody.appendChild(dlAll);
-    }
+    /* Save-all action */
+    const actions = document.createElement("div");
+    actions.style.display = "flex";
+    actions.style.gap = "8px";
+    actions.style.marginBottom = "10px";
+    const dlAll = document.createElement("button");
+    dlAll.className = "btn primary";
+    dlAll.type = "button";
+    dlAll.style.flex = "1";
+    dlAll.innerHTML = '<span class="ico">⬇</span> Save all files';
+    dlAll.addEventListener("click", downloadAll);
+    actions.appendChild(dlAll);
+    resultsBody.appendChild(actions);
 
     const grid = document.createElement("div");
     grid.className = "file-grid";
-    state.blobItems = [];
 
+    /* One row per produced hit file */
     names.forEach((n) => {
       const count = countForFile(n);
-      if (state.dirHandle) {
-        const item = document.createElement("div");
-        item.className = "file-item";
-        item.innerHTML = '<span class="badge">' + count + "</span>" +
-          '<span class="name">' + esc(n) + "</span>";
-        grid.appendChild(item);
-      } else {
-        const buf = state.buffers.get(n) || [];
-        const text = buf.join("\n") + (buf.length ? "\n" : "");
-        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        state.blobItems.push({ name: n, url });
-        const a = document.createElement("a");
-        a.className = "file-item";
-        a.href = url;
-        a.download = n;
-        a.innerHTML = '<span class="badge">' + count + "</span>" +
-          '<span class="name">' + esc(n) + "</span>" +
-          '<span class="dl">⬇</span>';
-        grid.appendChild(a);
-      }
+      const buf = state.buffers.get(n) || [];
+      const text = buf.join("\n") + (buf.length ? "\n" : "");
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      state.blobItems.push({ name: n, url });
+
+      grid.appendChild(makeItem(String(count), n, url, () => {
+        saveBlobUrl(url, n);
+        toast("Saved " + n, "ok");
+      }));
     });
 
-    if (state.dirHandle) {
-      const item = document.createElement("div");
-      item.className = "file-item";
-      item.innerHTML = '<span class="badge">—</span><span class="name">_SUMMARY_.txt</span>';
-      grid.appendChild(item);
-    } else {
-      const blob = new Blob([state.summaryText], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      state.blobItems.push({ name: "_SUMMARY_.txt", url });
-      const a = document.createElement("a");
-      a.className = "file-item";
-      a.href = url;
-      a.download = "_SUMMARY_.txt";
-      a.innerHTML = '<span class="badge">—</span>' +
-        '<span class="name">_SUMMARY_.txt</span>' +
-        '<span class="dl">⬇</span>';
-      grid.appendChild(a);
-    }
+    /* Summary row */
+    const summaryBlob = new Blob([state.summaryText], { type: "text/plain;charset=utf-8" });
+    const summaryUrl = URL.createObjectURL(summaryBlob);
+    state.blobItems.push({ name: "_SUMMARY_.txt", url: summaryUrl });
+    grid.appendChild(makeItem("—", "_SUMMARY_.txt", summaryUrl, () => {
+      saveBlobUrl(summaryUrl, "_SUMMARY_.txt");
+      toast("Saved _SUMMARY_.txt", "ok");
+    }));
+
     resultsBody.appendChild(grid);
   }
 
   async function downloadAll() {
     for (const it of state.blobItems) {
-      const a = document.createElement("a");
-      a.href = it.url;
-      a.download = it.name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      saveBlobUrl(it.url, it.name);
       await new Promise((r) => setTimeout(r, 220));
     }
   }
@@ -1388,19 +1418,19 @@ textarea::placeholder{color:var(--muted-2)}
      =================================================================== */
   function printBanner() {
     log("=".repeat(60), "banner");
-    log("  ⚡ URL EXTRACTOR v2.0", "banner");
-    log("  real-time · deduplicated · per-URL output", "dim");
+    log("  ⚡ OPTITRON ULP TOOL v2.1", "banner");
+    log("  url pattern matching · deduplicated · per-pattern output", "dim");
     log("=".repeat(60), "banner");
   }
-  function printSummary(totalMatches, fileCount, urlCount, elapsed) {
+  function printSummary(totalMatches, fileCount, patternCount, elapsed) {
     log("");
     log("=".repeat(60), "ok");
     log("📊 PROCESSING SUMMARY", "ok");
     log("=".repeat(60), "ok");
     log("");
-    log("   • URLs / keywords searched: " + urlCount);
+    log("   • URL patterns searched: " + patternCount);
     log("   • Files processed: " + fileCount);
-    log("   • URLs with matches: " + state.matchCounts.size);
+    log("   • Patterns with matches: " + state.matchCounts.size);
     log("   • Total unique matches: " + fmtNum(totalMatches));
     log("   • Processing time: " + elapsed.toFixed(2) + " s");
     if (totalMatches > 0 && elapsed > 0) {
@@ -1408,21 +1438,21 @@ textarea::placeholder{color:var(--muted-2)}
     }
     if (state.matchCounts.size) {
       log("");
-      log("🔗 Top URLs by hits:", "ok");
+      log("🔗 Top patterns by hits:", "ok");
       const sorted = [...state.matchCounts.entries()]
         .sort((a, b) => b[1] - a[1]).slice(0, 8);
-      for (const [url, count] of sorted) {
-        log("   • " + url.slice(0, 65));
-        log("     └─ " + count + " hit(s) → " + sanitizeFilename(url));
+      for (const [pattern, count] of sorted) {
+        log("   • " + pattern.slice(0, 65));
+        log("     └─ " + count + " hit(s) → " + sanitizeFilename(pattern));
       }
       if (state.matchCounts.size > 8) {
-        log("   • ... and " + (state.matchCounts.size - 8) + " more URLs");
+        log("   • ... and " + (state.matchCounts.size - 8) + " more patterns");
       }
     }
     log("");
     log("💾 " + (state.dirHandle
-      ? "Written to ./" + state.dirHandle.name + "/"
-      : "Results ready for download (see Results card)"), "ok");
+      ? "Written to ./" + state.dirHandle.name + "/ · also saveable below"
+      : "Each file is separately saveable in the Results card"), "ok");
     log("=".repeat(60) + "\n", "ok");
   }
 
@@ -1430,6 +1460,7 @@ textarea::placeholder{color:var(--muted-2)}
      RESET
      =================================================================== */
   function resetRunState() {
+    revokeBlobs();
     state.processedLines = new Map();
     state.matchCounts = new Map();
     state.buffers = new Map();
@@ -1437,7 +1468,6 @@ textarea::placeholder{color:var(--muted-2)}
     state.producedSet = new Set();
     state.producedFiles = [];
     state.summaryText = "";
-    state.blobItems = [];
     state.totalMatches = 0;
   }
 
@@ -1456,19 +1486,19 @@ textarea::placeholder{color:var(--muted-2)}
     printBanner();
 
     log("");
-    log("🔍 [STEP 1] Collecting keywords…", "step");
-    const urls = getCombinedKeywords();
-    if (!urls.length) {
-      log("   ❌ No keywords provided.", "err");
-      log("   → Toggle a preset category or type custom keywords.", "dim");
+    log("🔍 [STEP 1] Collecting URL patterns…", "step");
+    const patterns = getCombinedPatterns();
+    if (!patterns.length) {
+      log("   ❌ No URL patterns provided.", "err");
+      log("   → Toggle a preset category or type custom patterns.", "dim");
       setPill("idle");
-      toast("No keywords — add some first", "err");
-      resultsBody.textContent = "No keywords provided.";
+      toast("No patterns — add some first", "err");
+      resultsBody.textContent = "No URL patterns provided.";
       return;
     }
-    log("   ✓ " + urls.length + " unique keyword(s)", "ok");
-    urls.slice(0, 4).forEach((u) => log("     • " + u));
-    if (urls.length > 4) log("     • ... and " + (urls.length - 4) + " more");
+    log("   ✓ " + patterns.length + " unique URL pattern(s)", "ok");
+    patterns.slice(0, 4).forEach((p) => log("     • " + p));
+    if (patterns.length > 4) log("     • ... and " + (patterns.length - 4) + " more");
 
     log("");
     log("📂 [STEP 2] Scanning data files…", "step");
@@ -1500,7 +1530,7 @@ textarea::placeholder{color:var(--muted-2)}
       for (let i = 0; i < files.length; i++) {
         log("");
         log("   📄 [" + (i + 1) + "/" + files.length + "] " + files[i].name, "step");
-        const found = await processFile(files[i], i + 1, files.length, urls);
+        const found = await processFile(files[i], i + 1, files.length, patterns);
         if (found > 0) {
           log("   ✅ " + found + " new unique hit(s) in this file", "ok");
         } else {
@@ -1513,8 +1543,8 @@ textarea::placeholder{color:var(--muted-2)}
     }
 
     state.matchCounts = new Map();
-    for (const [url, set] of state.processedLines.entries()) {
-      state.matchCounts.set(url, set.size);
+    for (const [pattern, set] of state.processedLines.entries()) {
+      state.matchCounts.set(pattern, set.size);
     }
 
     log("");
@@ -1529,11 +1559,11 @@ textarea::placeholder{color:var(--muted-2)}
     }
     state.writers.clear();
 
-    printSummary(state.totalMatches, files.length, urls.length, elapsed);
+    printSummary(state.totalMatches, files.length, patterns.length, elapsed);
     renderResults();
 
     setStatus("done · " + fmtNum(state.totalMatches) + " hits · " +
-      elapsed.toFixed(2) + "s · " + files.length + " file(s)");
+      state.producedFiles.length + " file(s) · " + elapsed.toFixed(2) + "s");
     setPill("done", false);
     toast("Done · " + state.totalMatches + " unique hit(s)", "ok");
 
